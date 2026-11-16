@@ -1,10 +1,12 @@
 import { useState } from "react";
 import BabylonCanvas from "./components/BabylonCanvas";
 import { audio } from "./audio/audioAnalyser";
+import { defaultSettings, type VisualSettings } from "./scene/settings";
 
 export default function App(){
   const [listening, setListening] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [settings] = useState<VisualSettings>(defaultSettings);
 
   async function handleStart() {
     setError(null);
@@ -23,7 +25,7 @@ export default function App(){
 
   return (
     <main className="relative h-screen w-screen overflow-hidden bg-black">
-      <BabylonCanvas />
+      <BabylonCanvas settings={settings} />
       <div className="absolute left-4 top-4 flex flex-col gap-2">
         {listening ? (
           <button onClick={handleStop} className="rounded bg-white/10 px-4 py-2 text-white hover:bg-white/20">

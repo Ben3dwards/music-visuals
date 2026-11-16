@@ -1,112 +1,127 @@
 import { Scene, ParticleSystem, Texture, Vector3, Color4 } from "@babylonjs/core";
 import type { Bands } from "../audio/audioAnalyser";
+import { createHitDetector } from "../audio/hitDetector";
 
-function createSoftDot(scene: Scene) {
+const TUNING = {
+    emitRate: {base: 30, subBassBoost: 300 },
+    wind: { changeChance: 0.01, highsBoost: 0.1, strength: 0.5, midsBoost: 4, easing: 0.05 },
+    kick: { margin: 0.08, cooldown: 6, force: 2, forceBoost: 4},
+    snare: { margin: 0.07, cooldown: 12, force: 3, forceBoost: 5},
+    disperseSkipChance: 0.3,
+    drag: 0.99,
+};
+
+function createSoftDot(scene: Scene): Texture {
     const size = 128;
     const canvas = document.createElement("canvas");
     canvas.width = size;
     canvas.height = size;
+
     const ctx = canvas.getContext("2d")!;
-    const gradient = ctx.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
+    const centre = size / 2;
+    const gradient = ctx.createRadialGradient(centre, centre, 0, centre, centre, centre);
     gradient.addColorStop(0, "rgba(255, 255, 255, 1)");
-    gradient.addColorStop(0.4, "rgba(255, 255, 255, 0.3)"); 
+    gradient.addColorStop(0.4, "rgba(255, 255, 255, 0.3)");
     gradient.addColorStop(1, "rgba(255, 255, 255, 0)");
+
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, size, size);
+
     return new Texture(canvas.toDataURL(), scene);
-}
-
-function createHitDetector (margin = 0.08, cooldownFrames = 6) {
-    let average = 0;
-    let last = 0;
-    let cooldown = 0;
-
-    return (level: number) => {
-        average += (level - average) * 0.05;
-
-        const rising = level > last;
-        last = level;
-        cooldown = Math.max(0, cooldown - 1);
-
-        if (rising && level - average > margin && level > 0.1 && cooldown === 0){
-            cooldown = cooldownFrames;
-            return true;
-        }
-        return false;
-    };
 }
 
 export function createSmoke(scene: Scene){
     const smoke = new ParticleSystem("smoke", 3000, scene);
     smoke.particleTexture = createSoftDot(scene);
 
-    //Where the smoke spawns
+    //spawn around shape on a sphere
     smoke.emitter = Vector3.Zero();
     smoke.createSphereEmitter(1.5, 0);
     smoke.minEmitPower = 0.8;
     smoke.maxEmitPower = 1.6;
 
-    //how the smoke looks
+    //apperance
     smoke.minSize = 0.6;
     smoke.maxSize = 1.8;
     smoke.minLifeTime = 2;
     smoke.maxLifeTime = 4;
-
-    
     smoke.color1 = new Color4(1, 0, 0.5, 0.2);
     smoke.color2 = new Color4(0.3, 0, 1, 0.2);
     smoke.colorDead = new Color4(0, 0, 0, 0);
-    smoke.blendMode = ParticleSystem.BLENDMODE_ADD;
-
+    smoke.blendMode = ParticleSystem.BLENDMODE_ADD;   
+    
     smoke.emitRate = 0;
     smoke.start();
 
+    //state
+    let density = 0.5;
     const windTarget = new Vector3();
-
-    //detection near kick and snare frequencies
-    const isKick = createHitDetector(0.08);
-    const isSnareCrack = createHitDetector(0.07, 12);
     const outward = new Vector3();
+    const isKick = createHitDetector(TUNING.kick.margin, TUNING.kick.cooldown);
+    const isSnare = createHitDetector(TUNING.snare.margin, TUNING.snare.cooldown);
 
-    function disperse(force: number) {
+
+    //push particals awayfrom centre, like a shockwave
+    function disperse(force: number){
         for (const p of smoke.particles) {
-            if (Math.random() < 0.3) continue; 
+            if (Math.random() < TUNING.disperseSkipChance) continue;
             p.position.normalizeToRef(outward);
             p.direction.addInPlace(outward.scaleInPlace(force * (0.5 + Math.random())));
         }
     }
 
-    return{
+    //more smoke when sub-bass is heavy
+    function updateEmitRate(subBass: number){
+        const { base, subBassBoost } = TUNING.emitRate;
+        smoke.emitRate = density * (base + subBass * subBassBoost);
+    }
+
+    //radnom wind blows harder with mids
+    function updateWind(mid: number, high: number) {
+        const { changeChance, highsBoost, strength, midsBoost, easing } = TUNING.wind;
+
+        if (Math.random() < changeChance + high * highsBoost) {
+            windTarget.set(Math.random() * 2 - 1, Math.random() * 2 - 1, Math.random() * 2 - 1);
+        }
+
+        const windStrength = strength + mid * midsBoost;
+        smoke.gravity.x += (windTarget.x * windStrength - smoke.gravity.x) * easing;
+        smoke.gravity.y += (windTarget.y * windStrength - smoke.gravity.y) * easing;
+        smoke.gravity.z += (windTarget.z * windStrength - smoke.gravity.z) * easing;
+    }
+    
+    //kicks and snares push smoke outward
+    function handleHits(midBass: number, snare: number) {
+        if (isKick(midBass)) {
+            disperse(TUNING.kick.force + midBass * TUNING.kick.forceBoost);
+        }
+        if (isSnare(snare)) {
+            disperse(TUNING.snare.force + snare * TUNING.snare.forceBoost);
+        }
+    }
+
+    // Slows every particle a bit. blasts settle back into drifting smoke. 
+    function applyDrag() {
+        for (const p of smoke.particles) {
+            p.direction.scaleInPlace(TUNING.drag);
+        }
+    }
+
+    return {
         update ({ subBass, midBass, snare, mid, high }: Bands){
-            const snareHit = isSnareCrack(snare);
+            updateEmitRate(subBass);
+            updateWind(mid,high);
+            handleHits(midBass, snare);
+            applyDrag();
+        },
 
-            //smoke from more subBass
-            smoke.emitRate = 30 + subBass * 200;
+        setEnabled(enabled: boolean){
+            if (enabled && !smoke.isStarted()) smoke.start();
+            if (!enabled && smoke.isStarted ()) smoke.stop();
+        },
 
-            //pick random wind direction, more from highs
-            if (Math.random() < 0.01 + high * 0.1){
-                windTarget.set(Math.random() * 2 - 1, Math.random() * 2 - 1, Math.random() * 2 - 1);
-            }
-
-            //Ease wind in that direction. mids blow harder
-            const strength = 0.5 + mid * 4; 
-            smoke.gravity.x += (windTarget.x * strength - smoke.gravity.x) * 0.05;
-            smoke.gravity.y += (windTarget.y * strength - smoke.gravity.y) * 0.05;
-            smoke.gravity.z += (windTarget.z * strength - smoke.gravity.z) * 0.05;
-
-            if (isKick(midBass)){
-                disperse(2 + midBass * 4);
-            }
-
-
-            if (snareHit){
-                disperse (3 + snare * 5);
-            }
-
-            for (const p of smoke.particles){
-                p.direction.scaleInPlace(0.99);
-            }
-
+        setDensity(value: number){
+            density = value;
         },
     };
 }
