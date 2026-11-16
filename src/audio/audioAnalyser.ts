@@ -20,7 +20,7 @@ class AudioAnalyser {
         this.ctx = new AudioContext();
         this.analyser = this.ctx.createAnalyser();
         this.analyser.fftSize = 2048;
-        this.analyser.smoothingTimeConstant = 0.7;
+        this.analyser.smoothingTimeConstant = 0.4;
 
         this.ctx.createMediaStreamSource(stream).connect(this.analyser);
         this.data = new Uint8Array(this.analyser.frequencyBinCount);

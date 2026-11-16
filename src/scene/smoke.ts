@@ -16,16 +16,19 @@ function createSoftDot(scene: Scene) {
     return new Texture(canvas.toDataURL(), scene);
 }
 
-function createHitDetector (minRise: number, minLevel: number, cooldownFrames = 8) {
+function createHitDetector (margin = 0.08, cooldownFrames = 6) {
+    let average = 0;
     let last = 0;
     let cooldown = 0;
 
     return (level: number) => {
-        const rise = level - last;
+        average += (level - average) * 0.05;
+
+        const rising = level > last;
         last = level;
         cooldown = Math.max(0, cooldown - 1);
 
-        if (rise > minRise && level > minLevel && cooldown === 0){
+        if (rising && level - average > margin && level > 0.1 && cooldown === 0){
             cooldown = cooldownFrames;
             return true;
         }
@@ -61,9 +64,8 @@ export function createSmoke(scene: Scene){
     const windTarget = new Vector3();
 
     //detection near kick and snare frequencies
-    const isKick = createHitDetector(0.05, 0.5);
-    const isSnareCrack = createHitDetector(0.04, 0.35);
-    const isSnareBody = createHitDetector(0.03, 0.3);
+    const isKick = createHitDetector(0.08);
+    const isSnareCrack = createHitDetector(0.07, 12);
     const outward = new Vector3();
 
     function disperse(force: number) {
@@ -75,11 +77,11 @@ export function createSmoke(scene: Scene){
     }
 
     return{
-        update ({ subBass, midBass, snareBody, snare, mid, high }: Bands){
-            const crack = isSnareCrack(snare);
-            const body = isSnareBody(snareBody);
+        update ({ subBass, midBass, snare, mid, high }: Bands){
+            const snareHit = isSnareCrack(snare);
+
             //smoke from more subBass
-            smoke.emitRate = 20 + subBass * 200;
+            smoke.emitRate = 30 + subBass * 200;
 
             //pick random wind direction, more from highs
             if (Math.random() < 0.01 + high * 0.1){
@@ -93,10 +95,12 @@ export function createSmoke(scene: Scene){
             smoke.gravity.z += (windTarget.z * strength - smoke.gravity.z) * 0.05;
 
             if (isKick(midBass)){
-                disperse(0.8 + midBass * 2);
+                disperse(2 + midBass * 4);
             }
-            if (crack && body){
-                disperse (1.5 + snare * 3);
+
+
+            if (snareHit){
+                disperse (3 + snare * 5);
             }
 
             for (const p of smoke.particles){
