@@ -7,9 +7,9 @@ function createSoftDot(scene: Scene) {
     canvas.width = size;
     canvas.height = size;
     const ctx = canvas.getContext("2d")!;
-    const gradient = ctx.createRadialGradient(size / 2, 2, 0, size / 2, size / 2, size / 2);
+    const gradient = ctx.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
     gradient.addColorStop(0, "rgba(255, 255, 255, 1)");
-    gradient.addColorStop(0.4, "rgba(255, 255, 255, 0.3"); 
+    gradient.addColorStop(0.4, "rgba(255, 255, 255, 0.3)"); 
     gradient.addColorStop(1, "rgba(255, 255, 255, 0)");
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, size, size);
@@ -60,9 +60,10 @@ export function createSmoke(scene: Scene){
 
     const windTarget = new Vector3();
 
-    //detection near kick frequencies
+    //detection near kick and snare frequencies
     const isKick = createHitDetector(0.05, 0.5);
-    const isSnare = createHitDetector(0.04, 0.35);
+    const isSnareCrack = createHitDetector(0.04, 0.35);
+    const isSnareBody = createHitDetector(0.03, 0.3);
     const outward = new Vector3();
 
     function disperse(force: number) {
@@ -74,7 +75,9 @@ export function createSmoke(scene: Scene){
     }
 
     return{
-        update ({ subBass, midBass, mid, high }: Bands){
+        update ({ subBass, midBass, snareBody, snare, mid, high }: Bands){
+            const crack = isSnareCrack(snare);
+            const body = isSnareBody(snareBody);
             //smoke from more subBass
             smoke.emitRate = 20 + subBass * 200;
 
@@ -90,10 +93,10 @@ export function createSmoke(scene: Scene){
             smoke.gravity.z += (windTarget.z * strength - smoke.gravity.z) * 0.05;
 
             if (isKick(midBass)){
-                disperse(1 + midBass * 3);
+                disperse(0.8 + midBass * 2);
             }
-            if (isSnare(mid)){
-                disperse (0.8 + mid * 2);
+            if (crack && body){
+                disperse (1.5 + snare * 3);
             }
 
             for (const p of smoke.particles){

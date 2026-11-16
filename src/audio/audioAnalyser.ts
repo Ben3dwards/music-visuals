@@ -1,4 +1,4 @@
-export type Bands = { subBass: number;  midBass: number; mid: number; high: number };
+export type Bands = { subBass: number;  midBass: number; snareBody: number; snare: number; mid: number; high: number };
 
 class AudioAnalyser {
     private ctx: AudioContext | null = null;
@@ -9,9 +9,9 @@ class AudioAnalyser {
     async startSystemAudio(onEnded?: () => void){
         this.stop(); //cleanup
 
-        const stream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true}); //does this need to be video?
+        const stream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true});
 
-        stream.getVideoTracks().forEach((t) => t.stop);
+        stream.getVideoTracks().forEach((t) => t.stop());
 
         if (stream.getAudioTracks().length === 0){
             throw new Error ("No audio shared.")
@@ -33,13 +33,15 @@ class AudioAnalyser {
     }
 
     getBands(): Bands {
-        if (!this.analyser) return { subBass: 0, midBass: 0, mid: 0, high: 0};
+        if (!this.analyser) return { subBass: 0, midBass: 0, snareBody: 0, snare: 0, mid: 0, high: 0};
         this.analyser.getByteFrequencyData(this.data);
         return{
             subBass: this.average (20, 60),
             midBass: this.average(60, 150),
             mid: this.average(150, 2000),
-            high: this.average(2000, 12000),
+            snareBody: this.average(150,250),
+            snare: this.average (2000,4000),
+            high: this.average(4000, 12000),
         };       
     }
     
