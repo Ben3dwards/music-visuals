@@ -1,6 +1,9 @@
 import type { ReactNode } from "react";
-import type { ShapeType, VisualSettings } from "../scene/settings";
+import type { ShapeReactions, ShapeType, VisualSettings } from "../scene/settings";
+import ReactionControl from "./ReactionControl";
 import { ButtonGroup, ColourPicker, Slider, Toggle } from "./controls";
+
+const AXES = ["x", "y", "z"] as const;
 
 const SHAPE_OPTIONS: { value: ShapeType; label: string }[] = [
     { value: "cube", label: "Cube" },
@@ -15,8 +18,14 @@ type Props = {
 };
 
 export default function ControlPanel({ settings, onChange }: Props){
+    const reactions = settings.shapeReactions;
+
+    function updateReactions(changes: Partial<ShapeReactions>) {
+        onChange({ shapeReactions: { ...reactions, ...changes } });
+    }
+
     return (
-        <aside className="absolute right-4 top-4 flex w-64 flex-col gap-5 rounded-lg bg-black/60 p-4 text-white backdrop-blur">
+        <aside className="absolute right-4 top-4 flex max-h-[calc(100vh-2rem)] w-64 flex-col gap-5 overflow-y-auto rounded-lg bg-black/60 p-4 text-white backdrop-blur">
             <Section title="Shape">
                 <ButtonGroup 
                     label="Type"
@@ -39,6 +48,32 @@ export default function ControlPanel({ settings, onChange }: Props){
                     onChange={(scale) => onChange({ scale })}
                 />      
             </Section>
+
+
+            <Section title="Reactions">
+                {AXES.map((axis) => (
+                    <ReactionControl
+                        key={`stretch-${axis}`}
+                        label={`Stretch ${axis.toUpperCase()}`}
+                        reaction={reactions.stretch[axis]}
+                        onChange={(reaction) => updateReactions({ stretch: { ...reactions.stretch, [axis]: reaction } })}
+                    />
+                ))}
+                {AXES.map((axis) => (
+                    <ReactionControl
+                        key={`spin-${axis}`}
+                        label={`Spin ${axis.toUpperCase()}`}
+                        reaction={reactions.spin[axis]}
+                        onChange={(reaction) => updateReactions({ spin: { ...reactions.spin, [axis]: reaction } })}
+                    />
+                ))}
+                <ReactionControl 
+                    label="Glow" 
+                    reaction={reactions.glow}
+                    onChange={(glow) => updateReactions({ glow })}
+                    />
+            </Section>
+
 
             <Section title="Background">
                 <ColourPicker

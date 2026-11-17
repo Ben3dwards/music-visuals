@@ -1,11 +1,13 @@
 import { Scene, TransformNode, MeshBuilder, StandardMaterial, Color3, ImportMeshAsync, AbstractMesh } from "@babylonjs/core";
 import "@babylonjs/loaders/glTF";
 import type { AudioFeatures } from "../audio/audioFeatures";
-import type { ShapeType } from "./settings";
+import { applyTransformReactions, readReaction } from "./reactions";
+import type { ShapeReactions, ShapeType } from "./settings";
 
 export function createShapes(scene: Scene){
     const pivot = new TransformNode("shapePivot", scene);
 
+    let reactions: ShapeReactions | null = null;
     let current: AbstractMesh | null = null;
     let currentType: ShapeType | null = null;
     let material: StandardMaterial | null = null;
@@ -77,21 +79,19 @@ export function createShapes(scene: Scene){
             baseScale = scale;
         },
 
-        update({ bands }: AudioFeatures) {
-            const { subBass, midBass, mid, high } = bands;
-            pivot.scaling.set(
-                baseScale * (1 + midBass * 1.5),
-                baseScale * (1 + mid * 1.5),
-                baseScale * (1 + high * 3),
-            );
+        setReactions(value: ShapeReactions){
+            reactions = value;
+        },
 
-            pivot.rotation.y += subBass * 0.03;
-            pivot.rotation.z += subBass * 0.03;
+        update(features: AudioFeatures) {
+            if (!reactions) return;
 
+            applyTransformReactions(pivot, reactions, features, baseScale);
 
-            //Glow: users colour, dim at rest, full brightness with bass
-            if (material){
-                colour.scaleToRef(0.3 + midBass * 0.7, material.emissiveColor);
+            //glow
+            if (material) {
+                const glow = readReaction(reactions.glow, features);
+                colour.scaleToRef(0.3 + glow * 0.7, material.emissiveColor); 
             }
         },
     };
