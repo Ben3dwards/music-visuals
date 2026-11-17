@@ -35,6 +35,7 @@ export function createVisualiser(canvas: HTMLCanvasElement) {
             void shapes.setShape(settings.shape);
             shapes.setColour(settings.shapeColour);
             shapes.setScale(settings.scale);
+            shapes.setReactions(settings.shapeReactions);
             smoke.setEnabled(settings.smokeEnabled);
             smoke.setDensity(settings.smokeDensity);
         },

@@ -1,3 +1,5 @@
+
+
 type SliderProps = {
     label: string;
     value: number;
@@ -72,7 +74,7 @@ export function Toggle({ label, checked, onChange }: ToggleProps) {
     );
 }
 
-type Option<T extends string> = { value: T; label: string };
+export type Option<T extends string> = {value: T; label: string;}
 
 type ButtonGroupProps<T extends string> = {
     label: string;
@@ -101,4 +103,26 @@ export function ButtonGroup<T extends string>({ label, options, value, onChange 
             </div>
         </div>
     );
-    }
+}
+
+type SelectProps<T extends string> = {
+    label: string;
+    options: Option<T>[];
+    value: T;
+    onChange: (value: T) => void;
+};
+
+export function Select<T extends string>({ label, options, value, onChange }: SelectProps<T>) {
+    return (
+        <label className="flex items-center justify-between gap-2 text-sm text-white/70">
+            {label}
+            <select value={value} onChange={(e) => onChange(e.target.value as T)} className="rounded bg-white/10 px-2 py-1 text-white">
+                {options.map((option) => (
+                    <option key={option.value} value={option.value} className="bg-black">
+                        {option.label}
+                    </option>
+                ))}
+            </select>
+        </label>
+    )
+}
