@@ -1,6 +1,6 @@
 import { Scene, TransformNode, MeshBuilder, StandardMaterial, Color3, ImportMeshAsync, AbstractMesh } from "@babylonjs/core";
 import "@babylonjs/loaders/glTF";
-import type { Bands } from "../audio/audioAnalyser";
+import type { AudioFeatures } from "../audio/audioFeatures";
 import type { ShapeType } from "./settings";
 
 export function createShapes(scene: Scene){
@@ -16,7 +16,7 @@ export function createShapes(scene: Scene){
     async function build(type: ShapeType): Promise<AbstractMesh | null> {
         if (type === "model"){
             try {
-                const result = await ImportMeshAsync("./public/models/mr._burns_body.glb", scene);
+                const result = await ImportMeshAsync("/public/models/mr._burns_body.glb", scene);
                 const root = result.meshes[0];
                 root.normalizeToUnitCube();
                 return root;
@@ -77,7 +77,8 @@ export function createShapes(scene: Scene){
             baseScale = scale;
         },
 
-        update({ subBass, midBass, mid, high }: Bands){
+        update({ bands }: AudioFeatures) {
+            const { subBass, midBass, mid, high } = bands;
             pivot.scaling.set(
                 baseScale * (1 + midBass * 1.5),
                 baseScale * (1 + mid * 1.5),

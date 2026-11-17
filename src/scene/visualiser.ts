@@ -1,5 +1,5 @@
 import { Engine, Scene, ArcRotateCamera, HemisphericLight, Vector3 } from "@babylonjs/core";
-import { audio } from "../audio/audioAnalyser";
+import { createAudioFeatures } from "../audio/audioFeatures";
 import { createBackground } from "./background";
 import { createShapes } from "./shapes";
 import { createSmoke } from "./smoke";
@@ -14,14 +14,15 @@ export function createVisualiser(canvas: HTMLCanvasElement) {
     camera.attachControl(canvas, true);
     new HemisphericLight("light", new Vector3(0,1,0), scene);
 
+    const audioFeatures = createAudioFeatures();
     const background = createBackground(scene);
     const shapes = createShapes(scene);
     const smoke = createSmoke(scene);
 
     engine.runRenderLoop(() => {
-        const bands = audio.getBands();
-        shapes.update(bands);
-        smoke.update(bands);
+        const features = audioFeatures.update();
+        shapes.update(features);
+        smoke.update(features);
         scene.render();
     });
 
@@ -45,4 +46,4 @@ export function createVisualiser(canvas: HTMLCanvasElement) {
     };
 }
 
-export type Visualisor = ReturnType<typeof createVisualiser>;
+export type Visualiser = ReturnType<typeof createVisualiser>;

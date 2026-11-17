@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { createVisualiser, type Visualisor } from "../scene/visualiser";
+import { createVisualiser, type Visualiser } from "../scene/visualiser";
 import type { VisualSettings } from "../scene/settings";
 
 type Props = {
@@ -8,7 +8,7 @@ type Props = {
 
 export default function BabylonCanvas({ settings }: Props){
     const canvasRef = useRef<HTMLCanvasElement>(null);
-    const visualiserRef = useRef<Visualisor | null>(null);
+    const visualiserRef = useRef<Visualiser | null>(null);
 
     //create the visualiser once
     useEffect(() => {
