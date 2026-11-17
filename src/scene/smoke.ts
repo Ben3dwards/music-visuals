@@ -4,6 +4,8 @@ import type { Effect } from "./effect";
 import type { VisualSettings } from "./settings";
 
 const TUNING = {
+    spawnRadius: 1.5,
+    puffSize: { min: 0.6, max: 1.8 },
     emitRate: { base: 30, subBassBoost: 300 },
     wind: { changeChance: 0.01, highsBoost: 0.1, strength: 0.5, midsBoost: 4, easing: 0.05 },
     kickPush: { base: 2, boost: 4 },
@@ -37,13 +39,10 @@ export function createSmoke(scene: Scene): Effect {
 
     //spawn around shape on a sphere
     particles.emitter = Vector3.Zero();
-    particles.createSphereEmitter(1.5, 0);
     particles.minEmitPower = 0.8;
     particles.maxEmitPower = 1.6;
 
     //apperance
-    particles.minSize = 0.6;
-    particles.maxSize = 1.8;
     particles.minLifeTime = 2;
     particles.maxLifeTime = 4;
     particles.color1 = new Color4(1, 0, 0.5, 0.2);
@@ -98,10 +97,18 @@ export function createSmoke(scene: Scene): Effect {
     }
 
     return {
-        apply({ smoke }: VisualSettings) {
+        apply({ smoke, shape }: VisualSettings) {
             if (smoke.enabled && !particles.isStarted()) particles.start();
             if (!smoke.enabled && particles.isStarted()) particles.stop();
+
             density = smoke.density;
+
+            //Spawn just outside the shape
+            particles.createSphereEmitter(TUNING.spawnRadius * shape.scale * smoke.spread, 0);
+
+            //Puff size
+             particles.minSize = TUNING.puffSize.min * smoke.size;
+             particles.maxSize = TUNING.puffSize.max * smoke.size;
         },
         
         update({ bands, kick, snare }: AudioFeatures) {
@@ -113,7 +120,7 @@ export function createSmoke(scene: Scene): Effect {
 
             applyDrag();
         },
-        
+
         dispose() {
             particles.dispose();
         },
