@@ -1,5 +1,6 @@
 import { Engine, Scene, ArcRotateCamera, HemisphericLight, Vector3 } from "@babylonjs/core";
 import { createAudioFeatures } from "../audio/audioFeatures";
+import type { Effect } from "./effect";
 import { createBackground } from "./background";
 import { createShapes } from "./shapes";
 import { createSmoke } from "./smoke";
@@ -15,14 +16,17 @@ export function createVisualiser(canvas: HTMLCanvasElement) {
     new HemisphericLight("light", new Vector3(0,1,0), scene);
 
     const audioFeatures = createAudioFeatures();
-    const background = createBackground(scene);
-    const shapes = createShapes(scene);
-    const smoke = createSmoke(scene);
+
+    //every visual effect in the scene. Adding a new one = addig to this list
+    const effects: Effect[] = [
+        createBackground(scene),
+        createShapes(scene),
+        createSmoke(scene),
+    ];
 
     engine.runRenderLoop(() => {
         const features = audioFeatures.update();
-        shapes.update(features);
-        smoke.update(features);
+        for (const effect of effects) effect.update?.(features);
         scene.render();
     });
 
@@ -30,18 +34,13 @@ export function createVisualiser(canvas: HTMLCanvasElement) {
     window.addEventListener("resize", onResize);
 
     return{
-        applySettings(settings: VisualSettings){
-            background.setColour(settings.backgroundColour);
-            void shapes.setShape(settings.shape);
-            shapes.setColour(settings.shapeColour);
-            shapes.setScale(settings.scale);
-            shapes.setReactions(settings.shapeReactions);
-            smoke.setEnabled(settings.smokeEnabled);
-            smoke.setDensity(settings.smokeDensity);
+        applySettings(settings: VisualSettings) {
+            for (const effect of effects) effect.apply(settings);
         },
 
         dispose() {
             window.removeEventListener("resize", onResize);
+            for (const effect of effects) effect.dispose();
             engine.dispose();
         },
     };

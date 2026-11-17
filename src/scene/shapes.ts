@@ -1,10 +1,13 @@
 import { Scene, TransformNode, MeshBuilder, StandardMaterial, Color3, ImportMeshAsync, AbstractMesh } from "@babylonjs/core";
 import "@babylonjs/loaders/glTF";
 import type { AudioFeatures } from "../audio/audioFeatures";
+import type { Effect } from "./effect";
 import { applyTransformReactions, readReaction } from "./reactions";
-import type { ShapeReactions, ShapeType } from "./settings";
+import type { ShapeReactions, ShapeType, VisualSettings } from "./settings";
 
-export function createShapes(scene: Scene){
+const MODEL_URL = "/public/models/mr._burns_body.glb"
+
+export function createShapes(scene: Scene): Effect{
     const pivot = new TransformNode("shapePivot", scene);
 
     let reactions: ShapeReactions | null = null;
@@ -18,7 +21,7 @@ export function createShapes(scene: Scene){
     async function build(type: ShapeType): Promise<AbstractMesh | null> {
         if (type === "model"){
             try {
-                const result = await ImportMeshAsync("/public/models/mr._burns_body.glb", scene);
+                const result = await ImportMeshAsync(MODEL_URL, scene);
                 const root = result.meshes[0];
                 root.normalizeToUnitCube();
                 return root;
@@ -42,45 +45,40 @@ export function createShapes(scene: Scene){
         return mesh;
     }
 
+    async function setShape(type: ShapeType) {
+        if (type === currentType) return;
+        currentType = type;
+        const id = ++loadId;
+
+        //Remove old shape
+        current?.dispose(false, true);
+        current = null;
+        material = null;
+
+        const mesh = await build(type);
+        if (!mesh) return;
+
+        //If user picked something else while this was loading, throw this one away
+        if (id !== loadId || scene.isDisposed) {
+            mesh.dispose(false, true);
+            return;
+        }
+
+        if (type !== "model") {
+            material = new StandardMaterial(`${type}Material`, scene);
+            mesh.material = material;
+        }
+
+        mesh.parent = pivot;
+        current = mesh;
+    }
+
     return {
-        async setShape(type: ShapeType){
-            if (type === currentType) return;
-            currentType = type;
-            const id = ++loadId;
-
-            //remove old shape
-            current?.dispose(false, true);
-            current = null;
-            material = null;
-
-            const mesh = await build(type);
-            if (!mesh) return;
-
-            //if user picked somthing else while thisis loading, throw this one away
-            if (id !== loadId || scene.isDisposed) {
-                mesh.dispose(false, true);
-                return;
-            }
-
-            if (type !== "model") {
-                material = new StandardMaterial(`${type}Material`, scene);
-                mesh.material = material;
-            }
-
-            mesh.parent = pivot;
-            current = mesh;
-        },
-
-        setColour(hex: string){
-            colour = Color3.FromHexString(hex);
-        },
-
-        setScale(scale: number){
-            baseScale = scale;
-        },
-
-        setReactions(value: ShapeReactions){
-            reactions = value;
+        apply({ shape }: VisualSettings) {
+            void setShape(shape.type);
+            colour = Color3.FromHexString(shape.colour);
+            baseScale = shape.scale;
+            reactions = shape.reactions;
         },
 
         update(features: AudioFeatures) {
@@ -88,11 +86,17 @@ export function createShapes(scene: Scene){
 
             applyTransformReactions(pivot, reactions, features, baseScale);
 
-            //glow
+            // Glow
             if (material) {
-                const glow = readReaction(reactions.glow, features);
-                colour.scaleToRef(0.3 + glow * 0.7, material.emissiveColor); 
+            const glow = readReaction(reactions.glow, features);
+            colour.scaleToRef(0.3 + glow * 0.7, material.emissiveColor);
             }
+        },
+
+        dispose() {
+            loadId++; // cancels any model still loading
+            current?.dispose(false, true);
+            pivot.dispose();
         },
     };
 }

@@ -2,16 +2,20 @@ import { useState } from "react";
 import BabylonCanvas from "./components/BabylonCanvas";
 import ControlPanel from "./components/ControlPanel";
 import { audio } from "./audio/audioAnalyser";
-import { defaultSettings, type VisualSettings } from "./scene/settings";
+import { defaultSettings, type UpdateSettings, type VisualSettings } from "./scene/settings";
+
 
 export default function App() {
   const [settings, setSettings] = useState<VisualSettings>(defaultSettings);
   const [listening, setListening] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  function updateSettings(changes: Partial<VisualSettings>) {
-    setSettings((previous) => ({ ...previous, ...changes }));
-  }
+  const updateSettings: UpdateSettings = (group, changes) => {
+    setSettings((previous) => ({
+    ...previous,
+    [group]: { ...previous[group], ...changes },
+    }));
+  };
 
   async function handleStart() {
     setError(null);
