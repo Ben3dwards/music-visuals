@@ -1,33 +1,32 @@
 import { Scene, ParticleSystem, Texture, Vector3, Color4 } from "@babylonjs/core";
-import type { Bands } from "../audio/audioAnalyser";
-import { createHitDetector } from "../audio/hitDetector";
+import type { AudioFeatures } from "../audio/audioFeatures";
 
 const TUNING = {
-    emitRate: {base: 30, subBassBoost: 300 },
+    emitRate: { base: 30, subBassBoost: 300 },
     wind: { changeChance: 0.01, highsBoost: 0.1, strength: 0.5, midsBoost: 4, easing: 0.05 },
-    kick: { margin: 0.08, cooldown: 6, force: 2, forceBoost: 4},
-    snare: { margin: 0.07, cooldown: 12, force: 3, forceBoost: 5},
-    disperseSkipChance: 0.3,
-    drag: 0.99,
+    kickPush: { base: 2, boost: 4 },
+    snarePush: { base: 3, boost: 5 },
+    disperseSkipChance: 0.3, // fraction of particles a hit leaves untouched
+    drag: 0.99,              // how much speed each particle keeps per frame
 };
 
 function createSoftDot(scene: Scene): Texture {
-    const size = 128;
-    const canvas = document.createElement("canvas");
-    canvas.width = size;
-    canvas.height = size;
+        const size = 128;
+        const canvas = document.createElement("canvas");
+        canvas.width = size;
+        canvas.height = size;
 
-    const ctx = canvas.getContext("2d")!;
-    const centre = size / 2;
-    const gradient = ctx.createRadialGradient(centre, centre, 0, centre, centre, centre);
-    gradient.addColorStop(0, "rgba(255, 255, 255, 1)");
-    gradient.addColorStop(0.4, "rgba(255, 255, 255, 0.3)");
-    gradient.addColorStop(1, "rgba(255, 255, 255, 0)");
+        const ctx = canvas.getContext("2d")!;
+        const centre = size / 2;
+        const gradient = ctx.createRadialGradient(centre, centre, 0, centre, centre, centre);
+        gradient.addColorStop(0, "rgba(255, 255, 255, 1)");
+        gradient.addColorStop(0.4, "rgba(255, 255, 255, 0.3)");
+        gradient.addColorStop(1, "rgba(255, 255, 255, 0)");
 
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, size, size);
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, size, size);
 
-    return new Texture(canvas.toDataURL(), scene);
+        return new Texture(canvas.toDataURL(), scene);
 }
 
 export function createSmoke(scene: Scene){
@@ -38,11 +37,11 @@ export function createSmoke(scene: Scene){
     smoke.emitter = Vector3.Zero();
     smoke.createSphereEmitter(1.5, 0);
     smoke.minEmitPower = 0.8;
-    smoke.maxEmitPower = 1.6;
+    smoke.maxEmitPower = 2;
 
     //apperance
     smoke.minSize = 0.6;
-    smoke.maxSize = 1.8;
+    smoke.maxSize = 2;
     smoke.minLifeTime = 2;
     smoke.maxLifeTime = 4;
     smoke.color1 = new Color4(1, 0, 0.5, 0.2);
@@ -57,8 +56,6 @@ export function createSmoke(scene: Scene){
     let density = 0.5;
     const windTarget = new Vector3();
     const outward = new Vector3();
-    const isKick = createHitDetector(TUNING.kick.margin, TUNING.kick.cooldown);
-    const isSnare = createHitDetector(TUNING.snare.margin, TUNING.snare.cooldown);
 
 
     //push particals awayfrom centre, like a shockwave
@@ -70,7 +67,8 @@ export function createSmoke(scene: Scene){
         }
     }
 
-    //more smoke when sub-bass is heavy
+    //more smoke when sub-bass is heavy. scaled by user settings
+    
     function updateEmitRate(subBass: number){
         const { base, subBassBoost } = TUNING.emitRate;
         smoke.emitRate = density * (base + subBass * subBassBoost);
@@ -90,16 +88,6 @@ export function createSmoke(scene: Scene){
         smoke.gravity.z += (windTarget.z * windStrength - smoke.gravity.z) * easing;
     }
     
-    //kicks and snares push smoke outward
-    function handleHits(midBass: number, snare: number) {
-        if (isKick(midBass)) {
-            disperse(TUNING.kick.force + midBass * TUNING.kick.forceBoost);
-        }
-        if (isSnare(snare)) {
-            disperse(TUNING.snare.force + snare * TUNING.snare.forceBoost);
-        }
-    }
-
     // Slows every particle a bit. blasts settle back into drifting smoke. 
     function applyDrag() {
         for (const p of smoke.particles) {
@@ -108,10 +96,13 @@ export function createSmoke(scene: Scene){
     }
 
     return {
-        update ({ subBass, midBass, snare, mid, high }: Bands){
-            updateEmitRate(subBass);
-            updateWind(mid,high);
-            handleHits(midBass, snare);
+        update({ bands, kick, snare }: AudioFeatures) {
+            updateEmitRate(bands.subBass);
+            updateWind(bands.mid, bands.high);
+            
+            if (kick) disperse(TUNING.kickPush.base + bands.midBass * TUNING.kickPush.boost);
+            if (snare) disperse(TUNING.snarePush.base + bands.snare * TUNING.snarePush.boost);
+
             applyDrag();
         },
 

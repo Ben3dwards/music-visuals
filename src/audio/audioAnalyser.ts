@@ -44,6 +44,11 @@ class AudioAnalyser {
             high: this.average(4000, 12000),
         };       
     }
+
+    //the latest full frequency data. filled by getBands()
+    get spectrum(): Uint8Array{
+        return this.data;
+    }
     
     stop() {
         this.stream?.getTracks().forEach((t) => t.stop());
