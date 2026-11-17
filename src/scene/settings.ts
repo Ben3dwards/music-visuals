@@ -16,7 +16,9 @@ export type BackgroundSettings ={
 
 export type SmokeSettings = {
     enabled: boolean;
-    density: number;
+    density: number; //0-2
+    spread: number; //how far out it spawns
+    size: number; //puff size
 };
 
 
@@ -53,5 +55,5 @@ export const defaultSettings: VisualSettings = {
     },
 
     background: { colour: "#000000", },
-    smoke: {enabled: true, density: 0.5},
+    smoke: {enabled: true, density: 0.5, spread: 1, size: 1,},
 };

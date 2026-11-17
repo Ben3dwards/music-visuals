@@ -94,9 +94,27 @@ export default function ControlPanel({ settings, onChange }: Props){
                     label="Density"
                     value={smoke.density}
                     min={0}
-                    max={1}
+                    max={2}
                     step={0.05}
                      onChange={(density) => onChange("smoke", { density })}
+                    disabled={!smoke.enabled}
+                />
+                <Slider
+                    label="Spread"
+                    value={smoke.spread}
+                    min={0.5}
+                    max={3}
+                    step={0.05}
+                    onChange={(spread) => onChange("smoke", { spread })}
+                    disabled={!smoke.enabled}
+                />
+                <Slider
+                    label="Puff size"
+                    value={smoke.size}
+                    min={0.25}
+                    max={3}
+                    step={0.05}
+                    onChange={(size) => onChange("smoke", { size })}
                     disabled={!smoke.enabled}
                 />
             </Section>
