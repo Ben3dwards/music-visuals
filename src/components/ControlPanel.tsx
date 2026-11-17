@@ -1,11 +1,11 @@
 import type { ReactNode } from "react";
-import type { ShapeReactions, ShapeType, VisualSettings } from "../scene/settings";
+import type { ShapeReactions, ShapeType, UpdateSettings, VisualSettings } from "../scene/settings";
 import ReactionControl from "./ReactionControl";
-import { ButtonGroup, ColourPicker, Slider, Toggle } from "./controls";
+import { ButtonGroup, ColourPicker, Slider, Toggle, type Option } from "./controls";
 
 const AXES = ["x", "y", "z"] as const;
 
-const SHAPE_OPTIONS: { value: ShapeType; label: string }[] = [
+const SHAPE_OPTIONS: Option<ShapeType>[] = [
     { value: "cube", label: "Cube" },
     { value: "sphere", label: "Sphere" },
     { value: "model", label: "Model" },
@@ -14,38 +14,39 @@ const SHAPE_OPTIONS: { value: ShapeType; label: string }[] = [
 
 type Props = {
     settings: VisualSettings;
-    onChange: (changes: Partial<VisualSettings>) => void;
+    onChange: UpdateSettings;
 };
 
 export default function ControlPanel({ settings, onChange }: Props){
-    const reactions = settings.shapeReactions;
+    const { shape, background, smoke } = settings;
+    const reactions = shape.reactions;
 
     function updateReactions(changes: Partial<ShapeReactions>) {
-        onChange({ shapeReactions: { ...reactions, ...changes } });
+        onChange("shape", { reactions: { ...reactions, ...changes } });
     }
 
     return (
         <aside className="absolute right-4 top-4 flex max-h-[calc(100vh-2rem)] w-64 flex-col gap-5 overflow-y-auto rounded-lg bg-black/60 p-4 text-white backdrop-blur">
             <Section title="Shape">
-                <ButtonGroup 
+                <ButtonGroup
                     label="Type"
                     options={SHAPE_OPTIONS}
-                    value={settings.shape}
-                    onChange={(shape) => onChange({ shape })}    
+                    value={shape.type}
+                    onChange={(type) => onChange("shape", { type })}  
                 />
                 <ColourPicker 
                     label="Colour"
-                    value={settings.shapeColour}
-                    onChange={(shapeColour) => onChange({ shapeColour })}
-                    disabled={settings.shape === "model"}   
+                    value={shape.colour}
+                    onChange={(colour) => onChange("shape", { colour })}
+                    disabled={shape.type === "model"} 
                 />
                 <Slider
                     label="Size"
-                    value={settings.scale}
+                    value={shape.scale}
                     min={0.25}
                     max={3}
                     step={0.05}
-                    onChange={(scale) => onChange({ scale })}
+                    onChange={(scale) => onChange("shape", { scale })}
                 />      
             </Section>
 
@@ -78,25 +79,25 @@ export default function ControlPanel({ settings, onChange }: Props){
             <Section title="Background">
                 <ColourPicker
                     label="Colour"
-                    value={settings.backgroundColour}
-                    onChange={(backgroundColour) => onChange({ backgroundColour })}
+                    value={background.colour}
+                    onChange={(colour) => onChange("background", { colour })}
                 />
             </Section>  
 
             <Section title="Smoke">
                 <Toggle
                     label="Enabled"
-                    checked={settings.smokeEnabled}
-                    onChange={(smokeEnabled) => onChange({ smokeEnabled })}
+                    checked={smoke.enabled}
+                    onChange={(enabled) => onChange("smoke", { enabled })}
                 />
                 <Slider
                     label="Density"
-                    value={settings.smokeDensity}
+                    value={smoke.density}
                     min={0}
                     max={1}
                     step={0.05}
-                    onChange={(smokeDensity) => onChange({ smokeDensity })}
-                    disabled={!settings.smokeEnabled}
+                     onChange={(density) => onChange("smoke", { density })}
+                    disabled={!smoke.enabled}
                 />
             </Section>
         </aside>
