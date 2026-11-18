@@ -7,6 +7,7 @@ import { createShapes } from "./shapes";
 import { createSmoke } from "./smoke";
 import type { VisualSettings } from "./settings";
 import { createCamera } from "./camera";
+import { createSpectrum } from "./spectrum";
 
 
 export function createVisualiser(canvas: HTMLCanvasElement) {
@@ -21,6 +22,7 @@ export function createVisualiser(canvas: HTMLCanvasElement) {
         createBackground(scene),
         createLighting(scene),
         createShapes(scene),
+        createSpectrum(scene),
         createSmoke(scene),
     ];
 

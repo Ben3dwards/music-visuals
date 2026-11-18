@@ -44,7 +44,7 @@ type Props = {
 };
 
 export default function ControlPanel({ settings, onChange }: Props){
-    const { shape, lighting, camera, background, smoke } = settings;
+    const { shape, lighting, camera, spectrum, background, smoke } = settings;
     const reactions = shape.reactions;
 
     function updateReactions(changes: Partial<ShapeReactions>) {
@@ -177,6 +177,44 @@ export default function ControlPanel({ settings, onChange }: Props){
                     label="Punch"
                     reaction={camera.punch}
                     onChange={(punch) => onChange("camera", { punch })}
+                />
+
+            </Section>
+
+
+            <Section title="Spectrum">
+                <Toggle 
+                    label="Ring"
+                    checked={spectrum.ring}
+                    onChange={(ring) => onChange("spectrum", { ring })}
+                />
+                <Toggle 
+                    label="Grid"
+                    checked={spectrum.grid}
+                    onChange={(grid) => onChange("spectrum", { grid })}
+                />
+
+                <ColourPicker 
+                    label="Colour"
+                    value={spectrum.colour}
+                    onChange={(colour) => onChange("spectrum", { colour })}
+                />
+                <Slider 
+                    label="Bar height"
+                    value={spectrum.height}
+                    min={0.25}
+                    max={3}
+                    step={0.05}
+                    onChange={(height) => onChange("spectrum", { height })}
+                />
+                <Slider 
+                    label="Ring size"
+                    value={spectrum.radius}
+                    min={0.5}
+                    max={3}
+                    step={0.05}
+                    onChange={(radius) => onChange("spectrum", { radius })}
+                    disabled={!spectrum.ring}
                 />
 
             </Section>
