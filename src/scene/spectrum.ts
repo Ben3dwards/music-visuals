@@ -11,7 +11,14 @@ const TUNING ={
 };
 
 
-function createBarSet(name: string, count: number, width: number, material: StandardMaterial, scene: Scene){
+function createGlowMaterial(name: string, scene: Scene): StandardMaterial {
+    const material = new StandardMaterial(name, scene);
+    material.diffuseColor = Color3.Black();
+    return material;
+}
+
+
+function createBarSet(name: string, count: number, width: number, material: StandardMaterial, scene: Scene) {
     const mesh = MeshBuilder.CreateBox(name, { width, depth: width, height: 1}, scene);
     mesh.material = material;
     mesh.alwaysSelectAsActiveMesh = true;
@@ -76,11 +83,16 @@ function sampleSpectrum(spectrum: Uint8Array, count: number, out:Float32Array ){
 export function createSpectrum(scene: Scene): Effect {
     const { ring: RING, grid: GRID } = TUNING;
 
-    const material = new StandardMaterial("spectrumMaterial", scene);
-    material.diffuseColor = Color3.Black();
+    const ringMaterial = createGlowMaterial("spectrumRingMaterial", scene);
+    const ring = createBarSet("spectrumRing", RING.bars, RING.barWidth, ringMaterial, scene);
 
-    const ring = createBarSet("spectrumRing", RING.bars, RING.barWidth, material, scene);
-    const grid = createBarSet("spectrumGrid", GRID.columns * GRID.rows, GRID.barWidth, material, scene);
+
+    // Grid: one bar set per row, so each row can have its own brightness (for the depth fade)
+    const gridRows = Array.from({ length: GRID.rows }, (_, row) => {
+        const material = createGlowMaterial(`spectrumGridMaterial${row}`, scene);
+        const bars = createBarSet(`spectrumGridRow${row}`, GRID.columns, GRID.barWidth, material, scene);
+        return { material, bars };
+    });
 
     //ring is mirrored, only needs half as many value
     const halfRing = RING.bars / 2;
@@ -94,6 +106,11 @@ export function createSpectrum(scene: Scene): Effect {
     let showGrid = false;
     let heightScale = 1;
     let ringRadius = RING.radius;
+
+    //How bright a grid row is: 1 at front fades to the back
+    function rowBrightness(row: number, fade: number): number {
+        return 1 - fade * (row / (GRID.rows - 1));
+    }
 
     function updateRing(spectrum: Uint8Array) {
         sampleSpectrum(spectrum, halfRing, ringTargets);
@@ -121,34 +138,41 @@ export function createSpectrum(scene: Scene): Effect {
         history.unshift(newest);
 
         for (let row = 0; row < GRID.rows; row++) {
+            const { bars } = gridRows[row];
+            const z = GRID.frontZ + row * GRID.spacing;
+
             for (let column = 0; column < GRID.columns; column++) {
                 const height = history[row][column] * GRID.maxHeight * heightScale;
                 const x = (column - (GRID.columns - 1) / 2) * GRID.spacing;
-                const y = GRID.floorY + height / 2;
-                const z = GRID.frontZ + row * GRID.spacing;
+                const y = GRID.floorY + height / 2
 
-                grid.set(row * GRID.columns + column, x, y, z, 0, height);
+                bars.set(column, x, y, z, 0, height);
             }
-        }
-
-        grid.commit();
+            bars.commit();
+        }      
     }
 
     return {
          apply({ spectrum: settings, shape }: VisualSettings) {
             showRing = settings.ring;
             showGrid = settings.grid;
-            ring.setVisible(showRing);
-            grid.setVisible(showGrid);
-
             heightScale = settings.height;
             ringRadius = RING.radius * shape.scale * settings.radius;
-            material.emissiveColor = Color3.FromHexString(settings.colour).scale(settings.brightness);
 
+            const colour = Color3.FromHexString(settings.colour).scale(settings.brightness);
+
+            ring.setVisible(showRing);
             ring.setWidth(settings.barWidth);
-            grid.setWidth(settings.barWidth);
             ring.setBloom(settings.bloom);
-            grid.setBloom(settings.bloom);
+            ringMaterial.emissiveColor = colour;
+
+            gridRows.forEach(({ material, bars }, row) => {
+                const brightness = rowBrightness(row, settings.fade);
+                bars.setVisible(showGrid);
+                bars.setWidth(settings.barWidth);
+                bars.setBloom(settings.bloom * brightness);
+                material.emissiveColor = colour.scale(brightness);
+            });
          },
 
          update({ spectrum }: AudioFeatures){
@@ -158,8 +182,11 @@ export function createSpectrum(scene: Scene): Effect {
 
          dispose(){
             ring.dispose();
-            grid.dispose();
-            material.dispose();
+            ringMaterial.dispose();
+            for (const { material, bars } of gridRows) {
+                bars.dispose();
+                material.dispose();
+            }
          },
     };
 }

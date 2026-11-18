@@ -23,6 +23,7 @@ export type SpectrumSettings = {
     barWidth: number; // 1= bars touching, smaller num = smaller gaps
     height: number; //how tall bars get
     radius: number; // ring size
+    fade: number;
 }
 
 export type BorderSettings = {
@@ -138,6 +139,7 @@ export const defaultSettings: VisualSettings = {
         barWidth: 0.7,
         height: 1,
         radius: 1,
+        fade: 0.85,
     },
 
     background: { colour: "#000000", },
