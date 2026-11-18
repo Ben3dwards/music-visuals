@@ -34,8 +34,8 @@ export default function ControlPanel({ settings, onChange }: Props){
     }
 
     return (
-        <aside className="absolute right-4 top-4 flex max-h-[calc(100vh-2rem)] w-64 flex-col gap-5 overflow-y-auto rounded-lg bg-black/60 p-4 text-white backdrop-blur">
-            <Section title="Shape">
+        <aside className="absolute right-4 top-4 flex max-h-[calc(100vh-2rem)] w-72 flex-col gap-5 overflow-y-auto overflow-x-hidden rounded-lg bg-black/60 p-4 text-white backdrop-blur [scrollbar-color:rgba(255,255,255,0.2)_transparent] [scrollbar-width:thin]">
+            <Section title="Shape" defaultOpen>
                 <ButtonGroup
                     label="Type"
                     options={SHAPE_OPTIONS}
@@ -157,11 +157,14 @@ export default function ControlPanel({ settings, onChange }: Props){
     );
 }
 
-function Section({ title, children }: { title: string; children: ReactNode }) {
+function Section({ title, children, defaultOpen = false }: { title: string; children: ReactNode; defaultOpen?: boolean }) {
     return (
-        <section className="flex flex-col gap-3">
-            <h2 className="text-xs font-semibold uppercase tracking-wider text-white/50">{title}</h2>
-            {children}
-        </section>
+        <details open={defaultOpen} className="group flex flex-col">
+            <summary className="flex cursor-pointer list-none items-center justify-between text-xs font-semibold uppercase tracking-wider text-white/50 hover:text-white/80">
+                {title}
+                <span className="transition group-open:rotate-90">›</span>
+            </summary>
+            <div className="mt-3 flex flex-col gap-3">{children}</div>
+        </details>
     );
 }
