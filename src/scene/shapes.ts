@@ -7,6 +7,13 @@ import type { ShapeReactions, ShapeType, VisualSettings, ShapeFinish } from "./s
 
 const MODEL_URL = "/public/models/mr._burns_body.glb"
 
+function centreOnOrigin(root: AbstractMesh){
+    root.computeWorldMatrix(true);
+    const { min, max } = root.getHierarchyBoundingVectors();
+    const centre = min.add(max).scaleInPlace(0.5);
+    root.position.subtractInPlace(centre);
+}
+
 export function createShapes(scene: Scene): Effect{
     const pivot = new TransformNode("shapePivot", scene);
 
@@ -25,6 +32,7 @@ export function createShapes(scene: Scene): Effect{
                 const result = await ImportMeshAsync(MODEL_URL, scene);
                 const root = result.meshes[0];
                 root.normalizeToUnitCube();
+                centreOnOrigin(root);
                 return root;
             } catch (error){
                 console.error("Could not load model", error);
