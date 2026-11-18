@@ -11,6 +11,17 @@ export type ShapeSettings = {
     reactions: ShapeReactions;
 };
 
+
+export type CameraView = "front" | "angled" | "side" | "top";
+export type CameraSettings = {
+    view: CameraView;
+    distance: number;
+    orbit: number;
+    freeLook: boolean;
+    punch: Reaction;
+};
+
+
 export type BackgroundSettings ={
     colour: string;
 }
@@ -43,7 +54,8 @@ export type LightingSettings = {
 
 export type VisualSettings = {
     shape: ShapeSettings;
-    lighting: LightingSettings
+    lighting: LightingSettings;
+    camera: CameraSettings;
     background: BackgroundSettings;
     smoke: SmokeSettings
 };
@@ -82,6 +94,14 @@ export const defaultSettings: VisualSettings = {
         intensity: 1,
         glow: 0.6,
         flash: { source: "none", amount: 0 },
+    },
+
+    camera: {
+        view: "front",
+        distance: 5,
+        orbit: 0,
+        freeLook: true,
+        punch: { source: "none", amount: 0 },
     },
 
     background: { colour: "#000000", },
