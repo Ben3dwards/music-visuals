@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import type { ShapeReactions, ShapeType, UpdateSettings, VisualSettings } from "../scene/settings";
+import type { ShapeReactions, ShapeType, UpdateSettings, VisualSettings, WindMode } from "../scene/settings";
 import ReactionControl from "./ReactionControl";
 import { ButtonGroup, ColourPicker, Slider, Toggle, type Option } from "./controls";
 
@@ -9,6 +9,14 @@ const SHAPE_OPTIONS: Option<ShapeType>[] = [
     { value: "cube", label: "Cube" },
     { value: "sphere", label: "Sphere" },
     { value: "model", label: "Model" },
+];
+
+const WIND_OPTIONS: Option<WindMode>[] =[
+    { value: "random", label: "Random" },
+    { value: "right", label: "Right" },
+    { value: "left", label: "Left" },
+    { value: "up", label: "Up" },
+    { value: "down", label: "Down" },
 ];
 
 
@@ -115,6 +123,33 @@ export default function ControlPanel({ settings, onChange }: Props){
                     max={3}
                     step={0.05}
                     onChange={(size) => onChange("smoke", { size })}
+                    disabled={!smoke.enabled}
+                />
+                <ColourPicker
+                    label="Colour A"
+                    value={smoke.colourA}
+                    onChange={(colourA) => onChange("smoke", { colourA })}
+                    disabled={!smoke.enabled}
+                />
+                <ColourPicker
+                    label="Colour B"
+                    value={smoke.colourB}
+                    onChange={(colourB) => onChange("smoke", { colourB })}
+                    disabled={!smoke.enabled}
+                />
+                <ButtonGroup
+                label="wind"
+                options={WIND_OPTIONS}
+                value={smoke.windMode}
+                onChange={(windMode) => onChange("smoke", { windMode })}
+                />
+                <Slider
+                    label="Wind strength"
+                    value={smoke.wind}
+                    min={0}
+                    max={3}
+                    step={0.05}
+                    onChange={(wind) => onChange("smoke", { wind })}
                     disabled={!smoke.enabled}
                 />
             </Section>

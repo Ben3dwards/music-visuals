@@ -14,11 +14,18 @@ export type BackgroundSettings ={
     colour: string;
 }
 
+export type WindMode = "random" | "left" | "right" | "up" | "down";
+
+
 export type SmokeSettings = {
     enabled: boolean;
     density: number; //0-2
     spread: number; //how far out it spawns
     size: number; //puff size
+    colourA: string;
+    colourB: string;
+    windMode: WindMode;
+    wind: number;
 };
 
 
@@ -55,5 +62,15 @@ export const defaultSettings: VisualSettings = {
     },
 
     background: { colour: "#000000", },
-    smoke: {enabled: true, density: 0.5, spread: 1, size: 1,},
+    
+    smoke: {
+        enabled: true, 
+        density: 0.5, 
+        spread: 1, 
+        size: 1,
+        colourA: "ff0080",
+        colourB: "4d00ff",
+        windMode: "random",
+        wind: 1,
+    },
 };

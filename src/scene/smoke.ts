@@ -1,11 +1,12 @@
-import { Scene, ParticleSystem, Texture, Vector3, Color4 } from "@babylonjs/core";
+import { Scene, ParticleSystem, Texture, Vector3, Color3, Color4 } from "@babylonjs/core";
 import type { AudioFeatures } from "../audio/audioFeatures";
 import type { Effect } from "./effect";
-import type { VisualSettings } from "./settings";
+import type { VisualSettings, WindMode } from "./settings";
 
 const TUNING = {
     spawnRadius: 1.5,
     puffSize: { min: 0.6, max: 1.8 },
+    puffAlpha: 0.2,
     emitRate: { base: 30, subBassBoost: 300 },
     wind: { changeChance: 0.01, highsBoost: 0.1, strength: 0.5, midsBoost: 4, easing: 0.05 },
     kickPush: { base: 2, boost: 4 },
@@ -13,6 +14,14 @@ const TUNING = {
     disperseSkipChance: 0.3, // fraction of particles a hit leaves untouched
     drag: 0.99,              // how much speed each particle keeps per frame
 };
+
+//which way the wind blows
+const WIND_DIRECTIONS: Record<Exclude<WindMode, "random">, Vector3> ={
+    left: new Vector3(-1, 0, 0),
+    right: new Vector3(1, 0, 0),
+    up: new Vector3(0, 1, 0),
+    down: new Vector3(0, -1, 0),
+}
 
 function createSoftDot(scene: Scene): Texture {
     const size = 128;
@@ -33,6 +42,11 @@ function createSoftDot(scene: Scene): Texture {
     return new Texture(canvas.toDataURL(), scene);
 }
 
+//Turns a colour from the settings into more opaque puff folour
+function toPuffColour(hex: string): Color4{
+    return Color3.FromHexString(hex).toColor4(TUNING.puffAlpha)
+}
+
 export function createSmoke(scene: Scene): Effect {
     const particles = new ParticleSystem("smoke", 3000, scene);
     particles.particleTexture = createSoftDot(scene);
@@ -45,8 +59,6 @@ export function createSmoke(scene: Scene): Effect {
     //apperance
     particles.minLifeTime = 2;
     particles.maxLifeTime = 4;
-    particles.color1 = new Color4(1, 0, 0.5, 0.2);
-    particles.color2 = new Color4(0.3, 0, 1, 0.2);
     particles.colorDead = new Color4(0, 0, 0, 0);
     particles.blendMode = ParticleSystem.BLENDMODE_ADD;
 
@@ -55,6 +67,9 @@ export function createSmoke(scene: Scene): Effect {
 
     //state
     let density = 0.5;
+    let windMode: WindMode = "random";
+    let windIntensity = 1;
+
     const windTarget = new Vector3();
     const outward = new Vector3();
 
@@ -75,15 +90,19 @@ export function createSmoke(scene: Scene): Effect {
         particles.emitRate = density * (base + subBass * subBassBoost);
     }
 
-    //radnom wind blows harder with mids
+    //blows smoke. a fixed dirction or random gusts changed by busy highs
     function updateWind(mid: number, high: number) {
         const { changeChance, highsBoost, strength, midsBoost, easing } = TUNING.wind;
 
-        if (Math.random() < changeChance + high * highsBoost) {
-            windTarget.set(Math.random() * 2 - 1, Math.random() * 2 - 1, Math.random() * 2 - 1);
+        if (windMode === "random") {
+            if (Math.random() < changeChance + high * highsBoost) {
+                windTarget.set(Math.random() * 2 - 1, Math.random() * 2 - 1, Math.random() * 2 - 1);
+            }
+        } else {
+            windTarget.copyFrom(WIND_DIRECTIONS[windMode]);
         }
 
-        const windStrength = strength + mid * midsBoost;
+        const windStrength = (strength + mid * midsBoost) * windIntensity;
         particles.gravity.x += (windTarget.x * windStrength - particles.gravity.x) * easing;
         particles.gravity.y += (windTarget.y * windStrength - particles.gravity.y) * easing;
         particles.gravity.z += (windTarget.z * windStrength - particles.gravity.z) * easing;
@@ -102,6 +121,8 @@ export function createSmoke(scene: Scene): Effect {
             if (!smoke.enabled && particles.isStarted()) particles.stop();
 
             density = smoke.density;
+            windMode = smoke.windMode;
+            windIntensity = smoke.wind;
 
             //Spawn just outside the shape
             particles.createSphereEmitter(TUNING.spawnRadius * shape.scale * smoke.spread, 0);
@@ -109,6 +130,9 @@ export function createSmoke(scene: Scene): Effect {
             //Puff size
              particles.minSize = TUNING.puffSize.min * smoke.size;
              particles.maxSize = TUNING.puffSize.max * smoke.size;
+
+             particles.color1 = toPuffColour(smoke.colourA);
+             particles.color2 = toPuffColour(smoke.colourB);
         },
         
         update({ bands, kick, snare }: AudioFeatures) {
