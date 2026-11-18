@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import type { LightType, ShapeFinish, ShapeReactions, ShapeType, UpdateSettings, VisualSettings, WindMode } from "../scene/settings";
+import type { CameraView, LightType, ShapeFinish, ShapeReactions, ShapeType, UpdateSettings, VisualSettings, WindMode } from "../scene/settings";
 import ReactionControl from "./ReactionControl";
 import { ButtonGroup, ColourPicker, Slider, Toggle, type Option } from "./controls";
 
@@ -30,6 +30,13 @@ const LIGHT_OPTIONS: Option<LightType>[] =[
     { value: "directional", label: "Directional" },
 ]
 
+const VIEW_OPTIONS: Option<CameraView>[] = [
+    { value: "front", label: "Front" },
+    { value: "angled", label: "Angled" },
+    { value: "side", label: "Side" },
+    { value: "top", label: "Top" },
+]
+
 
 type Props = {
     settings: VisualSettings;
@@ -37,7 +44,7 @@ type Props = {
 };
 
 export default function ControlPanel({ settings, onChange }: Props){
-    const { shape, lighting, background, smoke } = settings;
+    const { shape, lighting, camera, background, smoke } = settings;
     const reactions = shape.reactions;
 
     function updateReactions(changes: Partial<ShapeReactions>) {
@@ -131,6 +138,47 @@ export default function ControlPanel({ settings, onChange }: Props){
                     reaction={lighting.flash}
                     onChange={(flash) => onChange("lighting", { flash })}
                 />
+            </Section>
+
+
+            <Section title="Camera">
+                <ButtonGroup
+                    label="View"
+                    options={VIEW_OPTIONS}
+                    value={camera.view}
+                    onChange={(view) => onChange("camera", { view })}
+                />
+
+                <Slider
+                    label="Distance"
+                    value={camera.distance}
+                    min={2}
+                    max={15}
+                    step={0.1}
+                    onChange={(distance) => onChange("camera", { distance })}
+                />
+
+                <Slider
+                    label="Orbit"
+                    value={camera.orbit}
+                    min={-2}
+                    max={2}
+                    step={0.05}
+                    onChange={(orbit) => onChange("camera", { orbit })}
+                />
+
+                <Toggle
+                    label="Free look (drag)"
+                    checked={camera.freeLook}
+                    onChange={(freeLook) => onChange("camera", { freeLook })}
+                />
+
+                <ReactionControl
+                    label="Punch"
+                    reaction={camera.punch}
+                    onChange={(punch) => onChange("camera", { punch })}
+                />
+
             </Section>
 
             <Section title="Background">
