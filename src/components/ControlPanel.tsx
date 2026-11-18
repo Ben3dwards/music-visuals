@@ -79,7 +79,41 @@ export default function ControlPanel({ settings, onChange }: Props){
                     max={3}
                     step={0.05}
                     onChange={(scale) => onChange("shape", { scale })}
-                />      
+                />     
+
+                <Slider 
+                    label="Bloom"
+                    value={shape.bloom}
+                    min={0}
+                    max={2}
+                    step={0.05}
+                    onChange={(bloom) => onChange("shape", { bloom })}
+                />
+
+                <Toggle 
+                    label="Border"
+                    checked={shape.border.enabled}
+                    onChange={(enabled) => onChange("shape", { border: { ...shape.border, enabled } })}
+                />
+
+                <ColourPicker 
+                    label="Border colour"
+                    value={shape.border.colour}
+                    onChange={(colour) => onChange("shape", { border: { ...shape.border, colour } })}
+                    disabled={!shape.border.enabled}
+                />
+
+                <Slider 
+                    label="Border width"
+                    value={shape.border.width}
+                    min={0}
+                    max={1}
+                    step={0.05}
+                    onChange={(width) => onChange("shape", { border: { ...shape.border, width } })}
+                    disabled={!shape.border.enabled}
+                />
+
+
             </Section>
 
 
@@ -131,6 +165,15 @@ export default function ControlPanel({ settings, onChange }: Props){
                     max={2}
                     step={0.05}
                     onChange={(glow) => onChange("lighting", { glow })}
+                />
+
+                <Slider 
+                    label="Glow spread"
+                    value={lighting.glowSpread}
+                    min={8}
+                    max={128}
+                    step={1}
+                    onChange={(glowSpread) => onChange("lighting", { glowSpread })}
                 />
 
                 <ReactionControl 
@@ -199,6 +242,34 @@ export default function ControlPanel({ settings, onChange }: Props){
                     value={spectrum.colour}
                     onChange={(colour) => onChange("spectrum", { colour })}
                 />
+
+                <Slider 
+                    label="Brightness"
+                    value={spectrum.brightness}
+                    min={0}
+                    max={1}
+                    step={0.05}
+                    onChange={(brightness) => onChange("spectrum", { brightness })}
+                />
+
+                <Slider 
+                    label="Bloom"
+                    value={spectrum.bloom}
+                    min={0}
+                    max={2}
+                    step={0.05}
+                    onChange={(bloom) => onChange("spectrum", { bloom })}
+                />
+
+                <Slider 
+                    label="Bar width"
+                    value={spectrum.barWidth}
+                    min={0.2}
+                    max={1.5}
+                    step={0.05}
+                    onChange={(barWidth) => onChange("spectrum", { barWidth })}
+                />
+
                 <Slider 
                     label="Bar height"
                     value={spectrum.height}

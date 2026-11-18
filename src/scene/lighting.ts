@@ -1,8 +1,9 @@
-import { Scene, HemisphericLight, PointLight, DirectionalLight, GlowLayer, Vector3, type Light } from "@babylonjs/core";
+import { Scene, HemisphericLight, PointLight, DirectionalLight, GlowLayer, Vector3, Color3, type Light, type StandardMaterial } from "@babylonjs/core";
 import type { AudioFeatures } from "../audio/audioFeatures";
 import type { Effect } from "./effect";
 import { readReaction, type Reaction } from "./reactions";
 import type { LightType, VisualSettings } from "./settings";
+import { getGlowStrength } from "./glow";
 
 const MAX_FLASH = 2;
 
@@ -20,6 +21,11 @@ function createLight(type: LightType, scene: Scene): Light{
 export function createLighting(scene: Scene): Effect {
     //bloom. anything emissive bleeds light into its surroundings
     const glowLayer = new GlowLayer("glow", scene);
+    glowLayer.customEmissiveColorSelector = (mesh, _subMesh, material, result) => {
+        const emissive = (material as StandardMaterial).emissiveColor ?? Color3.Black();
+        const strength = getGlowStrength(mesh);
+        result.set(emissive.r * strength, emissive.g * strength, emissive.b * strength, 1);
+    };
 
     let light: Light | null = null;
     let currentType: LightType | null = null;
@@ -39,6 +45,7 @@ export function createLighting(scene: Scene): Effect {
             baseIntensity = lighting.intensity;
             flash = lighting.flash;
             glowLayer.intensity = lighting.glow;
+            glowLayer.blurKernelSize = lighting.glowSpread;
         },
 
         update(features: AudioFeatures) {
