@@ -87,13 +87,13 @@ export function ButtonGroup<T extends string>({ label, options, value, onChange 
     return (
         <div className="flex flex-col gap-1 text-sm">
             <span className="text-white/70">{label}</span>
-            <div className="flex gap-1 rounded bg-white/5 p-1">
+            <div className="flex flex-wrap gap-1 rounded bg-white/5 p-1">
                 {options.map((option) => (
                     <button
                         key={option.value}
                         type="button"
                         onClick={() => onChange(option.value)}
-                        className={`flex-1 rounded px-2 py-1 transition ${
+                        className={`grow whitespace-nowrap rounded px-2 py-1 transition ${
                             option.value === value ? "bg-white/20 text-white" : "text-white/60 hover:text-white"
                         }`}
                         >
