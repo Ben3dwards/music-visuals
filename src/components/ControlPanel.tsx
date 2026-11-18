@@ -278,6 +278,17 @@ export default function ControlPanel({ settings, onChange }: Props){
                     step={0.05}
                     onChange={(height) => onChange("spectrum", { height })}
                 />
+
+                <Slider 
+                    label="Depth fade"
+                    value={spectrum.fade}
+                    min={0}
+                    max={1}
+                    step={0.05}
+                    onChange={(fade) => onChange("spectrum", { fade })}
+                    disabled={!spectrum.grid}
+                />
+
                 <Slider 
                     label="Ring size"
                     value={spectrum.radius}
