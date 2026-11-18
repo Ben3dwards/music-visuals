@@ -3,7 +3,8 @@ import "@babylonjs/loaders/glTF";
 import type { AudioFeatures } from "../audio/audioFeatures";
 import type { Effect } from "./effect";
 import { applyTransformReactions, readReaction } from "./reactions";
-import type { ShapeReactions, ShapeType, VisualSettings, ShapeFinish } from "./settings";
+import type { ShapeReactions, ShapeType, VisualSettings, ShapeFinish, BorderSettings } from "./settings";
+import { setGlowStrength } from "./glow";
 
 const MODEL_URL = "/public/models/mr._burns_body.glb"
 
@@ -25,6 +26,8 @@ export function createShapes(scene: Scene): Effect{
     let colour = new Color3(1, 0, 0.5);
     let baseScale = 1;
     let loadId = 0; //used to ignore model loads that finish after the user swaps shape
+    let bloom = 1;
+    let border: BorderSettings = { enabled: true, colour: "#000000", width: 0.25 };
 
     async function build(type: ShapeType): Promise<AbstractMesh | null> {
         if (type === "model"){
@@ -45,14 +48,37 @@ export function createShapes(scene: Scene): Effect{
             ? MeshBuilder.CreateBox("cube", { size: 1 }, scene)
             : MeshBuilder.CreateSphere("sphere", { diameter: 1.2 }, scene);
 
-        if (type === "cube"){
-            mesh.enableEdgesRendering()
-            mesh.edgesWidth = 2;
-            mesh.edgesColor = Color3.Black().toColor4(1);
-        }
-
         return mesh;
     }
+
+    //Applies the border and bloom settings to the current shape. including every part of an imported model.
+    function applyStyle() {
+        if (!current) return;
+
+        const borderColour = Color3.FromHexString(border.colour);
+        const meshes = [current, ...current.getChildMeshes()];
+
+        for (const mesh of meshes) {
+            setGlowStrength(mesh, bloom);
+            
+            if (currentType === "cube") {
+                // Cubes get lines along every edge
+                if (border.enabled) {
+                    mesh.enableEdgesRendering();
+                    mesh.edgesWidth = 1 + border.width * 8;
+                    mesh.edgesColor = borderColour.toColor4(1);
+                } else {
+                    mesh.disableEdgesRendering();
+                }
+            } else {
+                //Spheres and models get an outline around their silhouette
+                mesh.renderOutline = border.enabled;
+                mesh.outlineWidth = border.width * 0.05;
+                mesh.outlineColor = borderColour;
+            }
+        }
+    }
+
 
     async function setShape(type: ShapeType) {
         if (type === currentType) return;
@@ -80,6 +106,8 @@ export function createShapes(scene: Scene): Effect{
 
         mesh.parent = pivot;
         current = mesh;
+        applyStyle();
+
     }
 
     return {
@@ -88,7 +116,10 @@ export function createShapes(scene: Scene): Effect{
             colour = Color3.FromHexString(shape.colour);
             baseScale = shape.scale;
             reactions = shape.reactions;
-            finish = shape.finish
+            finish = shape.finish;
+            bloom = shape.bloom;
+            border = shape.border;
+            applyStyle();
         },
 
         update(features: AudioFeatures) {

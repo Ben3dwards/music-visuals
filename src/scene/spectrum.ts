@@ -2,6 +2,7 @@ import { Scene, MeshBuilder, StandardMaterial, Color3, Matrix, Quaternion, Vecto
 import type { AudioFeatures } from "../audio/audioFeatures";
 import type { Effect } from "./effect";
 import type { VisualSettings } from "./settings";
+import { setGlowStrength } from "./glow";
 
 const TUNING ={
     ring: { bars: 64, barWidth: 0.08, radius: 1.5, maxHeight: 1.5 },
@@ -23,10 +24,11 @@ function createBarSet(name: string, count: number, width: number, material: Stan
     const scale = new Vector3();
     const rotation = new Quaternion();
     const position = new Vector3();
+    let widthScale = 1;
 
     return {
         set(i: number, x: number, y: number, z: number, angle: number, height: number){
-            scale.set(1, Math.max(height, 0.001), 1);
+            scale.set(widthScale, Math.max(height, 0.001), widthScale);
             Quaternion.FromEulerAnglesToRef(0, 0, angle, rotation);
             position.set(x, y, z);
             Matrix.ComposeToRef(scale, rotation, position, matrix);
@@ -40,6 +42,14 @@ function createBarSet(name: string, count: number, width: number, material: Stan
 
         setVisible(visible: boolean) {
             mesh.setEnabled(visible);
+        },
+
+        setWidth(scale: number) {
+            widthScale = scale;
+        },
+
+        setBloom(strength: number){
+            setGlowStrength(mesh, strength);
         },
 
         dispose(){
@@ -133,7 +143,12 @@ export function createSpectrum(scene: Scene): Effect {
 
             heightScale = settings.height;
             ringRadius = RING.radius * shape.scale * settings.radius;
-            material.emissiveColor = Color3.FromHexString(settings.colour);
+            material.emissiveColor = Color3.FromHexString(settings.colour).scale(settings.brightness);
+
+            ring.setWidth(settings.barWidth);
+            grid.setWidth(settings.barWidth);
+            ring.setBloom(settings.bloom);
+            grid.setBloom(settings.bloom);
          },
 
          update({ spectrum }: AudioFeatures){

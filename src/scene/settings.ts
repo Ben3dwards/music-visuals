@@ -8,16 +8,27 @@ export type ShapeSettings = {
     finish: ShapeFinish;
     colour: string; // hex
     scale: number;  // 1 = normal size
+    bloom: number;
+    border:BorderSettings;
     reactions: ShapeReactions;
 };
 
-
+//Spectrum visualisor
 export type SpectrumSettings = {
     ring: boolean; 
     grid: boolean;
     colour: string;
+    brightness: number;
+    bloom: number; // how much the bar glows
+    barWidth: number; // 1= bars touching, smaller num = smaller gaps
     height: number; //how tall bars get
     radius: number; // ring size
+}
+
+export type BorderSettings = {
+    enabled: boolean;
+    colour: string;
+    width: number;
 }
 
 
@@ -57,6 +68,7 @@ export type LightingSettings = {
     type: LightType;
     intensity: number;
     glow: number;
+    glowSpread: number;
     flash: Reaction;
 };
 
@@ -84,6 +96,8 @@ export const defaultSettings: VisualSettings = {
         finish: "glow",
         colour: "#ff0080",
         scale: 1,
+        bloom: 1,
+        border: { enabled: true, colour: "#000000", width: 0.25},
         reactions: {
             stretch: {
                 x: { source: "midBass", amount: 0.5 },
@@ -103,6 +117,7 @@ export const defaultSettings: VisualSettings = {
         type: "ambient",
         intensity: 1,
         glow: 0.6,
+        glowSpread: 32,
         flash: { source: "none", amount: 0 },
     },
 
@@ -118,6 +133,9 @@ export const defaultSettings: VisualSettings = {
         ring: true,
         grid: false,
         colour: "#00e5ff",
+        brightness: 0.6,
+        bloom: 0.4,
+        barWidth: 0.7,
         height: 1,
         radius: 1,
     },
