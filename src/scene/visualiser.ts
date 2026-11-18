@@ -1,4 +1,5 @@
-import { Engine, Scene, ArcRotateCamera, HemisphericLight, Vector3 } from "@babylonjs/core";
+import { Engine, Scene, ArcRotateCamera, Vector3 } from "@babylonjs/core";
+import { createLighting } from "./lighting";
 import { createAudioFeatures } from "../audio/audioFeatures";
 import type { Effect } from "./effect";
 import { createBackground } from "./background";
@@ -13,13 +14,13 @@ export function createVisualiser(canvas: HTMLCanvasElement) {
 
     const camera = new ArcRotateCamera("camera", -Math.PI / 2, Math.PI / 2, 5, Vector3.Zero(), scene);
     camera.attachControl(canvas, true);
-    new HemisphericLight("light", new Vector3(0,1,0), scene);
 
     const audioFeatures = createAudioFeatures();
 
     //every visual effect in the scene. Adding a new one = addig to this list
     const effects: Effect[] = [
         createBackground(scene),
+        createLighting(scene),
         createShapes(scene),
         createSmoke(scene),
     ];

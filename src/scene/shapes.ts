@@ -3,13 +3,14 @@ import "@babylonjs/loaders/glTF";
 import type { AudioFeatures } from "../audio/audioFeatures";
 import type { Effect } from "./effect";
 import { applyTransformReactions, readReaction } from "./reactions";
-import type { ShapeReactions, ShapeType, VisualSettings } from "./settings";
+import type { ShapeReactions, ShapeType, VisualSettings, ShapeFinish } from "./settings";
 
 const MODEL_URL = "/public/models/mr._burns_body.glb"
 
 export function createShapes(scene: Scene): Effect{
     const pivot = new TransformNode("shapePivot", scene);
 
+    let finish: ShapeFinish = "glow";
     let reactions: ShapeReactions | null = null;
     let current: AbstractMesh | null = null;
     let currentType: ShapeType | null = null;
@@ -79,6 +80,7 @@ export function createShapes(scene: Scene): Effect{
             colour = Color3.FromHexString(shape.colour);
             baseScale = shape.scale;
             reactions = shape.reactions;
+            finish = shape.finish
         },
 
         update(features: AudioFeatures) {
@@ -88,8 +90,18 @@ export function createShapes(scene: Scene): Effect{
 
             // Glow
             if (material) {
-            const glow = readReaction(reactions.glow, features);
-            colour.scaleToRef(0.3 + glow * 0.7, material.emissiveColor);
+                const glow = readReaction(reactions.glow, features);
+
+                if (finish === "glow"){
+                    //self lit: neon colour, brighter with music
+                    material.diffuseColor.set(0,0,0);
+                    colour.scaleToRef(0.3 + glow * 0.7, material.emissiveColor);
+                }else{
+                    //lit by the scenes light with a little glow added by the music
+                    material.diffuseColor.copyFrom(colour);
+                    colour.scaleToRef(glow * 0.5, material.emissiveColor);
+                }
+                
             }
         },
 

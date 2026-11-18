@@ -5,6 +5,7 @@ export type ShapeReactions = TransformReactions & { glow: Reaction };
 
 export type ShapeSettings = {
     type: ShapeType;
+    finish: ShapeFinish;
     colour: string; // hex
     scale: number;  // 1 = normal size
     reactions: ShapeReactions;
@@ -29,11 +30,24 @@ export type SmokeSettings = {
 };
 
 
+export type ShapeFinish = "glow" | "lit";
+export type LightType= "ambient" | "point" | "directional";
+
+export type LightingSettings = {
+    type: LightType;
+    intensity: number;
+    glow: number;
+    flash: Reaction;
+};
+
+
 export type VisualSettings = {
     shape: ShapeSettings;
+    lighting: LightingSettings
     background: BackgroundSettings;
     smoke: SmokeSettings
 };
+
 
 // Updates part of one settings group, e.g. updateSettings("smoke", { density: 0.8 }) 
 export type UpdateSettings = <K extends keyof VisualSettings>(
@@ -41,9 +55,11 @@ export type UpdateSettings = <K extends keyof VisualSettings>(
     changes: Partial<VisualSettings[K]>,
 ) => void;
 
+
 export const defaultSettings: VisualSettings = {
     shape: {
         type: "cube",
+        finish: "glow",
         colour: "#ff0080",
         scale: 1,
         reactions: {
@@ -59,6 +75,13 @@ export const defaultSettings: VisualSettings = {
             },
             glow: { source: "midBass", amount: 1},
         },
+    },
+
+    lighting: {
+        type: "ambient",
+        intensity: 1,
+        glow: 0.6,
+        flash: { source: "none", amount: 0 },
     },
 
     background: { colour: "#000000", },

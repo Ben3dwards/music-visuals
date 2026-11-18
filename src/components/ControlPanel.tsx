@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import type { ShapeReactions, ShapeType, UpdateSettings, VisualSettings, WindMode } from "../scene/settings";
+import type { LightType, ShapeFinish, ShapeReactions, ShapeType, UpdateSettings, VisualSettings, WindMode } from "../scene/settings";
 import ReactionControl from "./ReactionControl";
 import { ButtonGroup, ColourPicker, Slider, Toggle, type Option } from "./controls";
 
@@ -19,6 +19,17 @@ const WIND_OPTIONS: Option<WindMode>[] =[
     { value: "down", label: "Down" },
 ];
 
+const FINISH_OPTIONS: Option<ShapeFinish>[] =[
+    { value: "glow", label: "Glow"},
+    { value: "lit", label: "Lit"},
+];
+
+const LIGHT_OPTIONS: Option<LightType>[] =[
+    { value: "ambient", label: "Ambient" },
+    { value: "point", label: "Point" },
+    { value: "directional", label: "Directional" },
+]
+
 
 type Props = {
     settings: VisualSettings;
@@ -26,7 +37,7 @@ type Props = {
 };
 
 export default function ControlPanel({ settings, onChange }: Props){
-    const { shape, background, smoke } = settings;
+    const { shape, lighting, background, smoke } = settings;
     const reactions = shape.reactions;
 
     function updateReactions(changes: Partial<ShapeReactions>) {
@@ -41,6 +52,12 @@ export default function ControlPanel({ settings, onChange }: Props){
                     options={SHAPE_OPTIONS}
                     value={shape.type}
                     onChange={(type) => onChange("shape", { type })}  
+                />
+                <ButtonGroup 
+                    label="Finish"
+                    options={FINISH_OPTIONS}
+                    value={shape.finish}
+                    onChange={(finish) => onChange("shape", { finish })}
                 />
                 <ColourPicker 
                     label="Colour"
@@ -83,6 +100,38 @@ export default function ControlPanel({ settings, onChange }: Props){
                     />
             </Section>
 
+            <Section title="Lighting">
+                <ButtonGroup 
+                    label="Light"
+                    options={LIGHT_OPTIONS}
+                    value={lighting.type}
+                    onChange={(type) => onChange("lighting", { type })}
+                />
+
+                <Slider 
+                    label="Intensity"
+                    value={lighting.intensity}
+                    min={0}
+                    max={2}
+                    step={0.05}
+                    onChange={(intensity) => onChange("lighting", { intensity })}
+                />
+
+                <Slider 
+                    label="Glow"
+                    value={lighting.glow}
+                    min={0}
+                    max={2}
+                    step={0.05}
+                    onChange={(glow) => onChange("lighting", { glow })}
+                />
+
+                <ReactionControl 
+                    label="Flash"
+                    reaction={lighting.flash}
+                    onChange={(flash) => onChange("lighting", { flash })}
+                />
+            </Section>
 
             <Section title="Background">
                 <ColourPicker
