@@ -12,6 +12,15 @@ export type ShapeSettings = {
 };
 
 
+export type SpectrumSettings = {
+    ring: boolean; 
+    grid: boolean;
+    colour: string;
+    height: number; //how tall bars get
+    radius: number; // ring size
+}
+
+
 export type CameraView = "front" | "angled" | "side" | "top";
 export type CameraSettings = {
     view: CameraView;
@@ -56,6 +65,7 @@ export type VisualSettings = {
     shape: ShapeSettings;
     lighting: LightingSettings;
     camera: CameraSettings;
+    spectrum: SpectrumSettings;
     background: BackgroundSettings;
     smoke: SmokeSettings
 };
@@ -102,6 +112,14 @@ export const defaultSettings: VisualSettings = {
         orbit: 0,
         freeLook: true,
         punch: { source: "none", amount: 0 },
+    },
+
+    spectrum: {
+        ring: true,
+        grid: false,
+        colour: "#00e5ff",
+        height: 1,
+        radius: 1,
     },
 
     background: { colour: "#000000", },
