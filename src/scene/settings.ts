@@ -1,5 +1,6 @@
 import type { Reaction, TransformReactions } from "./reactions";
 import { BACKGROUND_IMAGES } from "./backgroundImages";
+import { MODELS } from "./models";
 
 export type ShapeType = "cube" | "sphere" | "model";
 export type ShapeReactions = TransformReactions & { glow: Reaction };
@@ -12,6 +13,7 @@ export type ShapeSettings = {
     bloom: number;
     border:BorderSettings;
     reactions: ShapeReactions;
+    modelUrl: string; // which model to show when type is "model"
 };
 
 //Spectrum visualisor
@@ -102,6 +104,7 @@ export type UpdateSettings = <K extends keyof VisualSettings>(
 export const defaultSettings: VisualSettings = {
     shape: {
         type: "cube",
+        modelUrl: MODELS[0].url,
         finish: "glow",
         colour: "#ff0080",
         scale: 1,
