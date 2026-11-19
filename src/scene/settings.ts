@@ -1,4 +1,5 @@
 import type { Reaction, TransformReactions } from "./reactions";
+import { BACKGROUND_IMAGES } from "./backgroundImages";
 
 export type ShapeType = "cube" | "sphere" | "model";
 export type ShapeReactions = TransformReactions & { glow: Reaction };
@@ -44,8 +45,14 @@ export type CameraSettings = {
 };
 
 
+export type BackgroundMode = "colour" | "image";
+
 export type BackgroundSettings ={
+    mode: BackgroundMode;
     colour: string;
+    imageUrl: string;
+    brightness: number;
+    spin: number; //rotates image
 }
 
 export type WindMode = "random" | "left" | "right" | "up" | "down";
@@ -144,7 +151,13 @@ export const defaultSettings: VisualSettings = {
         gridSpacing: 1,
     },
 
-    background: { colour: "#000000", },
+    background: { 
+        mode: "colour",
+        colour: "#000000",
+        imageUrl: BACKGROUND_IMAGES[0].url,
+        brightness: 1,
+        spin: 0,
+    },
     
     smoke: {
         enabled: true, 
