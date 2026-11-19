@@ -183,6 +183,7 @@ export default function ControlPanel({ settings, onChange }: Props){
                         key={`spin-${axis}`}
                         label={`Spin ${axis.toUpperCase()}`}
                         reaction={reactions.spin[axis]}
+                        minAmount={-1}
                         onChange={(reaction) => updateReactions({ spin: { ...reactions.spin, [axis]: reaction } })}
                     />
                 ))}
