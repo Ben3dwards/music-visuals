@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import BabylonCanvas from "./components/BabylonCanvas";
 import ControlPanel from "./components/ControlPanel";
+import TopBar from "./components/TopBar";
+import AddBar from "./components/AddBar";
 import { audio } from "./audio/audioAnalyser";
 import { defaultSettings, type UpdateSettings, type VisualSettings } from "./scene/settings";
 
@@ -13,8 +15,8 @@ export default function App() {
 
   const updateSettings: UpdateSettings = (group, changes) => {
     setSettings((previous) => ({
-    ...previous,
-    [group]: { ...previous[group], ...changes },
+      ...previous,
+      [group]: { ...previous[group], ...changes },
     }));
   };
 
@@ -59,27 +61,27 @@ export default function App() {
   }
 
   return (
-    <main className={`relative h-screen w-screen overflow-hidden bg-black ${performing ? "cursor-none" : ""}`}>
-      <BabylonCanvas settings={settings} />
+      <main className={`relative h-screen w-screen overflow-hidden bg-black ${performing ? "cursor-none" : ""}`}>
+        <BabylonCanvas settings={settings} />
+
         {!performing && (
           <>
-            <div className="absolute left-4 top-4 flex flex-col gap-2">
-              {listening ? (
-                <button onClick={handleStop} className="rounded bg-white/10 px-4 py-2 text-white hover:bg-white/20">
-                  Stop listening
-                </button>
-              ) : (
-                <button onClick={handleStart} className="rounded bg-white/10 px-4 py-2 text-white hover:bg-white/20">
-                  Listen to system audio
-                </button>
-              )}
-              <button onClick={startPerforming} className="rounded bg-pink-500/80 px-4 py-2 text-white hover:bg-pink-500">
-                Perform
-              </button>
-              {error && <p className="max-w-xs text-sm text-red-400">{error}</p>}
-            </div>
+            <TopBar
+              listening={listening}
+              onStartAudio={handleStart}
+              onStopAudio={handleStop}
+              onPerform={startPerforming}
+            />
 
-            <ControlPanel settings={settings} onChange={updateSettings} />
+             {error && (
+              <p className="absolute left-1/2 top-16 max-w-md -translate-x-1/2 rounded bg-red-500/20 px-3 py-2 text-sm text-red-300">
+                {error}
+              </p>
+             )}
+
+             <ControlPanel settings={settings} onChange={updateSettings} />
+
+             <AddBar currentShape={settings.shape.type} onPickShape={(type) => updateSettings("shape", { type })} />
           </>
         )}
       </main>
