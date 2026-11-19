@@ -1,4 +1,4 @@
-import type { Reaction, TransformReactions } from "./reactions";
+import type { Axes, Reaction, TransformReactions } from "./reactions";
 import { BACKGROUND_IMAGES } from "./backgroundImages";
 import { MODELS } from "./models";
 
@@ -14,6 +14,7 @@ export type ShapeSettings = {
     border:BorderSettings;
     reactions: ShapeReactions;
     modelUrl: string; // which model to show when type is "model"
+    rotation: Axes<number>;
 };
 
 //Spectrum visualisor
@@ -110,6 +111,7 @@ export const defaultSettings: VisualSettings = {
         scale: 1,
         bloom: 1,
         border: { enabled: true, colour: "#000000", width: 0.25},
+        rotation: { x: 0, y: 180, z: 0},
         reactions: {
             stretch: {
                 x: { source: "midBass", amount: 0.5 },

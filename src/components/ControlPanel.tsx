@@ -98,9 +98,20 @@ export default function ControlPanel({ settings, onChange }: Props){
                             onChange={(modelUrl) => onChange("shape", { modelUrl })}
                         />
                         <FileButton label="Upload .glb…" accept=".glb" onFile={uploadModel} />
+                        {AXES.map((axis) => (
+                            <Slider
+                                key={`rotate-${axis}`}
+                                label={`Rotate ${axis.toUpperCase()}`}
+                                value={shape.rotation[axis]}
+                                min={-180}
+                                max={180}
+                                step={15}
+                                onChange={(degrees) => onChange("shape", { rotation: { ...shape.rotation, [axis]: degrees } })}
+                            />
+                        ))}
                     </>
                 )}
-                
+
                 <ButtonGroup 
                     label="Finish"
                     options={FINISH_OPTIONS}

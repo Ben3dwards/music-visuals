@@ -16,6 +16,8 @@ function centreOnOrigin(root: AbstractMesh){
 
 export function createShapes(scene: Scene): Effect{
     const pivot = new TransformNode("shapePivot", scene);
+    const orientation = new TransformNode("shapeOrientation", scene);
+    orientation.parent = pivot
 
     let finish: ShapeFinish = "glow";
     let reactions: ShapeReactions | null = null;
@@ -107,7 +109,7 @@ export function createShapes(scene: Scene): Effect{
             mesh.material = material;
         }
 
-        mesh.parent = pivot;
+        mesh.parent = orientation;
         current = mesh;
         applyStyle();
 
@@ -115,6 +117,12 @@ export function createShapes(scene: Scene): Effect{
 
     return {
         apply({ shape }: VisualSettings) {
+            const toRadians = Math.PI / 180;
+            orientation.rotation.set(
+                shape.rotation.x * toRadians,
+                shape.rotation.y * toRadians,
+                shape.rotation.z * toRadians,
+            );
             modelUrl = shape.modelUrl;
             void setShape(shape.type);
             colour = Color3.FromHexString(shape.colour);
