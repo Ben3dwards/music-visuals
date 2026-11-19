@@ -106,6 +106,7 @@ export function createSpectrum(scene: Scene): Effect {
     let showGrid = false;
     let heightScale = 1;
     let ringRadius = RING.radius;
+    let gridSpacing = GRID.spacing;
 
     //How bright a grid row is: 1 at front fades to the back
     function rowBrightness(row: number, fade: number): number {
@@ -139,11 +140,11 @@ export function createSpectrum(scene: Scene): Effect {
 
         for (let row = 0; row < GRID.rows; row++) {
             const { bars } = gridRows[row];
-            const z = GRID.frontZ + row * GRID.spacing;
+            const z = GRID.frontZ + row * gridSpacing;
 
             for (let column = 0; column < GRID.columns; column++) {
                 const height = history[row][column] * GRID.maxHeight * heightScale;
-                const x = (column - (GRID.columns - 1) / 2) * GRID.spacing;
+                const x = (column - (GRID.columns - 1) / 2) * gridSpacing;
                 const y = GRID.floorY + height / 2
 
                 bars.set(column, x, y, z, 0, height);
@@ -158,6 +159,7 @@ export function createSpectrum(scene: Scene): Effect {
             showGrid = settings.grid;
             heightScale = settings.height;
             ringRadius = RING.radius * shape.scale * settings.radius;
+            gridSpacing = GRID.spacing * settings.gridSpacing;
 
             const colour = Color3.FromHexString(settings.colour).scale(settings.brightness);
 
