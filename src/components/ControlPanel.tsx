@@ -1,9 +1,15 @@
 import type { ReactNode } from "react";
-import type { CameraView, LightType, ShapeFinish, ShapeReactions, ShapeType, UpdateSettings, VisualSettings, WindMode } from "../scene/settings";
+import type { BackgroundMode, CameraView, LightType, ShapeFinish, ShapeReactions, ShapeType, UpdateSettings, VisualSettings, WindMode } from "../scene/settings";
 import ReactionControl from "./ReactionControl";
-import { ButtonGroup, ColourPicker, Slider, Toggle, type Option } from "./controls";
+import { ButtonGroup, ColourPicker, FileButton, Select, Slider, Toggle, type Option } from "./controls";
+import { BACKGROUND_IMAGES } from "../scene/backgroundImages";
 
 const AXES = ["x", "y", "z"] as const;
+
+const BACKGROUND_MODE_OPTIONS: Option<BackgroundMode>[] = [
+    { value: "colour", label: "Colour" },
+    { value: "image", label: "Image" },
+];
 
 const SHAPE_OPTIONS: Option<ShapeType>[] = [
     { value: "cube", label: "Cube" },
@@ -49,6 +55,17 @@ export default function ControlPanel({ settings, onChange }: Props){
 
     function updateReactions(changes: Partial<ShapeReactions>) {
         onChange("shape", { reactions: { ...reactions, ...changes } });
+    }
+
+    const isCustomImage = !BACKGROUND_IMAGES.some((image) => image.url === background.imageUrl);
+    const imageOptions: Option<string>[] = [
+        ...BACKGROUND_IMAGES.map(({ label, url }) => ({ value: url, label })),
+        ...(isCustomImage ? [{ value: background.imageUrl, label: "Your image" }] : []),
+    ];
+
+    function uploadBackground(file: File) {
+        if (background.imageUrl.startsWith("blob:")) URL.revokeObjectURL(background.imageUrl);
+        onChange("background", { mode: "image", imageUrl: URL.createObjectURL(file) });
     }
 
     return (
@@ -312,11 +329,44 @@ export default function ControlPanel({ settings, onChange }: Props){
             </Section>
 
             <Section title="Background">
+                <ButtonGroup
+                    label="Type"
+                    options={BACKGROUND_MODE_OPTIONS}
+                    value={background.mode}
+                    onChange={(mode) => onChange("background", { mode })}
+                />
                 <ColourPicker
                     label="Colour"
                     value={background.colour}
                     onChange={(colour) => onChange("background", { colour })}
                 />
+                {background.mode === "image" && (
+                    <>
+                        <Select
+                            label="Image"
+                            options={imageOptions}
+                            value={background.imageUrl}
+                            onChange={(imageUrl) => onChange("background", { imageUrl })}
+                        />
+                        <FileButton label="Upload your own…" accept="image/*" onFile={uploadBackground} />
+                        <Slider
+                            label="Brightness"
+                            value={background.brightness}
+                            min={0}
+                            max={1}
+                            step={0.05}
+                            onChange={(brightness) => onChange("background", { brightness })}
+                        />
+                        <Slider
+                            label="Spin"
+                            value={background.spin}
+                            min={-2}
+                            max={2}
+                            step={0.05}
+                            onChange={(spin) => onChange("background", { spin })}
+                        />
+                    </>
+                )}
             </Section>  
 
             <Section title="Smoke">

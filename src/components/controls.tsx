@@ -126,3 +126,27 @@ export function Select<T extends string>({ label, options, value, onChange }: Se
         </label>
     )
 }
+
+type FileButtonProps = {
+    label: string;
+    accept: string;
+    onFile: (file: File) => void;
+};
+
+export function FileButton({ label, accept, onFile }: FileButtonProps) {
+    return (
+        <label className="cursor-pointer rounded bg-white/10 px-3 py-2 text-center text-sm text-white hover:bg-white/20">
+            {label}
+            <input 
+                type="file"
+                accept={accept}
+                className="hidden"
+                onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) onFile(file);
+                    e.target.value = "";
+                }}
+            />
+        </label>
+    )
+}
