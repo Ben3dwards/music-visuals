@@ -280,6 +280,16 @@ export default function ControlPanel({ settings, onChange }: Props){
                 />
 
                 <Slider 
+                    label="Grid Spacing"
+                    value={spectrum.gridSpacing}
+                    min={0.5}
+                    max={3}
+                    step={0.05}
+                    onChange={(gridSpacing) => onChange("spectrum", { gridSpacing })}
+                    disabled={!spectrum.grid}
+                />
+
+                <Slider 
                     label="Depth fade"
                     value={spectrum.fade}
                     min={0}

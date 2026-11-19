@@ -24,6 +24,7 @@ export type SpectrumSettings = {
     height: number; //how tall bars get
     radius: number; // ring size
     fade: number;
+    gridSpacing: number; // space between grid bars
 }
 
 export type BorderSettings = {
@@ -140,6 +141,7 @@ export const defaultSettings: VisualSettings = {
         height: 1,
         radius: 1,
         fade: 0.85,
+        gridSpacing: 1,
     },
 
     background: { colour: "#000000", },
