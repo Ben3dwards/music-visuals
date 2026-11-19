@@ -3,6 +3,7 @@ import type { BackgroundMode, CameraView, LightType, ShapeFinish, ShapeReactions
 import ReactionControl from "./ReactionControl";
 import { ButtonGroup, ColourPicker, FileButton, Select, Slider, Toggle, type Option } from "./controls";
 import { BACKGROUND_IMAGES } from "../scene/backgroundImages";
+import { MODELS } from "../scene/models";
 
 const AXES = ["x", "y", "z"] as const;
 
@@ -68,6 +69,17 @@ export default function ControlPanel({ settings, onChange }: Props){
         onChange("background", { mode: "image", imageUrl: URL.createObjectURL(file) });
     }
 
+    const isCustomModel = !MODELS.some((model) => model.url === shape.modelUrl);
+    const modelOptions: Option<string>[] = [
+        ...MODELS.map(({ label, url }) => ({ value: url, label })),
+        ...(isCustomModel ? [{ value: shape.modelUrl, label: "Your model" }] : []),
+    ];
+
+    function uploadModel(file: File){
+        if (shape.modelUrl.startsWith("blob:")) URL.revokeObjectURL(shape.modelUrl);
+        onChange("shape", { type: "model", modelUrl: URL.createObjectURL(file) });
+    }
+
     return (
         <aside className="absolute right-4 top-4 flex max-h-[calc(100vh-2rem)] w-72 flex-col gap-5 overflow-y-auto overflow-x-hidden rounded-lg bg-black/60 p-4 text-white backdrop-blur [scrollbar-color:rgba(255,255,255,0.2)_transparent] [scrollbar-width:thin]">
             <Section title="Shape" defaultOpen>
@@ -77,6 +89,18 @@ export default function ControlPanel({ settings, onChange }: Props){
                     value={shape.type}
                     onChange={(type) => onChange("shape", { type })}  
                 />
+                {shape.type === "model" && (
+                    <>
+                        <Select
+                            label="Model"
+                            options={modelOptions}
+                            value={shape.modelUrl}
+                            onChange={(modelUrl) => onChange("shape", { modelUrl })}
+                        />
+                        <FileButton label="Upload .glb…" accept=".glb" onFile={uploadModel} />
+                    </>
+                )}
+                
                 <ButtonGroup 
                     label="Finish"
                     options={FINISH_OPTIONS}

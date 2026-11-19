@@ -6,7 +6,6 @@ import { applyTransformReactions, readReaction } from "./reactions";
 import type { ShapeReactions, ShapeType, VisualSettings, ShapeFinish, BorderSettings } from "./settings";
 import { setGlowStrength } from "./glow";
 
-const MODEL_URL = "/public/models/mr._burns_body.glb"
 
 function centreOnOrigin(root: AbstractMesh){
     root.computeWorldMatrix(true);
@@ -28,11 +27,13 @@ export function createShapes(scene: Scene): Effect{
     let loadId = 0; //used to ignore model loads that finish after the user swaps shape
     let bloom = 1;
     let border: BorderSettings = { enabled: true, colour: "#000000", width: 0.25 };
+    let modelUrl = "";
+    let currentModelUrl: string | null = null;
 
     async function build(type: ShapeType): Promise<AbstractMesh | null> {
         if (type === "model"){
             try {
-                const result = await ImportMeshAsync(MODEL_URL, scene);
+                const result = await ImportMeshAsync(modelUrl, scene, { pluginExtension: ".glb" });
                 const root = result.meshes[0];
                 root.normalizeToUnitCube();
                 centreOnOrigin(root);
@@ -81,8 +82,10 @@ export function createShapes(scene: Scene): Effect{
 
 
     async function setShape(type: ShapeType) {
-        if (type === currentType) return;
+        const isSame = type === currentType && (type !== "model" || modelUrl === currentModelUrl);
+        if (isSame) return;
         currentType = type;
+        currentModelUrl = type === "model" ? modelUrl : null;
         const id = ++loadId;
 
         //Remove old shape
@@ -112,6 +115,7 @@ export function createShapes(scene: Scene): Effect{
 
     return {
         apply({ shape }: VisualSettings) {
+            modelUrl = shape.modelUrl;
             void setShape(shape.type);
             colour = Color3.FromHexString(shape.colour);
             baseScale = shape.scale;
