@@ -9,12 +9,16 @@ class AudioAnalyser {
     async startSystemAudio(onEnded?: () => void){
         this.stop(); //cleanup
 
-        const stream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true});
+        const options = { video: true, audio: true, systemAudio: "include" as const };
+        const stream = await navigator.mediaDevices.getDisplayMedia(options);
 
         stream.getVideoTracks().forEach((t) => t.stop());
 
         if (stream.getAudioTracks().length === 0){
-            throw new Error ("No audio shared.")
+            throw new Error (
+                "No audio was shared. On Windows, share your entire screen and tick 'Also share system audio'. " +
+                "On a Mac, update Chrome and macOS, or share a Chrome tab that's playing music.",
+            )
         }
 
         this.ctx = new AudioContext();
