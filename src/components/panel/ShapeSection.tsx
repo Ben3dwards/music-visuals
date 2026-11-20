@@ -42,17 +42,7 @@ export default function ShapeSection({ settings, selectedId, onObjectChange }: P
                         onChange={(modelUrl) => update({ modelUrl })}
                     />
                     <FileButton label="Upload .glb…" accept=".glb" onFile={uploadModel} />
-                    {AXES.map((axis) => (
-                        <Slider
-                            key={`rotate-${axis}`}
-                            label={`Rotate ${axis.toUpperCase()}`}
-                            value={shape.rotation[axis]}
-                            min={-180}
-                            max={180}
-                            step={15}
-                            onChange={(degrees) => update({ rotation: { ...shape.rotation, [axis]: degrees } })}
-                        />
-                    ))}
+                    
                 </>
             )}
 
@@ -78,6 +68,18 @@ export default function ShapeSection({ settings, selectedId, onObjectChange }: P
                 step={0.05}
                 onChange={(scale) => update({ scale })}
             />
+
+            {AXES.map((axis) => (
+                <Slider
+                    key={`rotate-${axis}`}
+                    label={`Rotate ${axis.toUpperCase()}`}
+                    value={shape.rotation[axis]}
+                    min={-180}
+                    max={180}
+                    step={15}
+                    onChange={(degrees) => update({ rotation: { ...shape.rotation, [axis]: degrees } })}
+                />
+            ))}
 
             <Slider
                 label="Bloom"
