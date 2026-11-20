@@ -30,16 +30,15 @@ export function readReaction({ source, amount }: Reaction, features: AudioFeatur
 }
 
 //applies stratch and spin reactions to any object
-export function applyTransformReactions(node: TransformNode, reactions: TransformReactions,features: AudioFeatures,baseScale = 1,) {
+export function applyTransformReactions(spinNode: TransformNode, stretchNode: TransformNode, reactions: TransformReactions, features: AudioFeatures, baseScale = 1,) {
     const { stretch, spin } = reactions;
-
-    node.scaling.set(
+    stretchNode.scaling.set(
         baseScale * (1 + readReaction(stretch.x, features) * MAX_STRETCH),
         baseScale * (1 + readReaction(stretch.y, features) * MAX_STRETCH),
         baseScale * (1 + readReaction(stretch.z, features) * MAX_STRETCH),
     );
 
-    node.rotation.x += readReaction(spin.x, features) * MAX_SPIN;
-    node.rotation.y += readReaction(spin.y, features) * MAX_SPIN;
-    node.rotation.z += readReaction(spin.z, features) * MAX_SPIN;
+    spinNode.rotation.x += readReaction(spin.x, features) * MAX_SPIN;
+    spinNode.rotation.y += readReaction(spin.y, features) * MAX_SPIN;
+    spinNode.rotation.z += readReaction(spin.z, features) * MAX_SPIN;
 }

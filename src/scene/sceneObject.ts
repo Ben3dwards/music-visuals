@@ -20,7 +20,9 @@ export function createSceneObject(scene: Scene, id: string) {
     //music moves the pivot
     const pivot = new TransformNode(`pivot-${id}`, scene);
     const orientation = new TransformNode(`orientation-${id}`, scene);
+    const stretcher = new TransformNode(`stretch-${id}`, scene); 
     orientation.parent = pivot;
+    stretcher.parent = orientation;
 
 
     let current: AbstractMesh | null = null;
@@ -107,7 +109,7 @@ export function createSceneObject(scene: Scene, id: string) {
             mesh.material = material;
         }
 
-        mesh.parent = orientation;
+        mesh.parent = stretcher;
         current = mesh;
         applyStyle();
     }
@@ -137,7 +139,7 @@ export function createSceneObject(scene: Scene, id: string) {
         update(features: AudioFeatures) {
             if (!reactions) return;
 
-            applyTransformReactions(pivot, reactions, features, baseScale);
+            applyTransformReactions(pivot, stretcher, reactions, features, baseScale);
 
             if (material) {
                 const glow = readReaction(reactions.glow, features);
