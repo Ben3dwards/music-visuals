@@ -16,7 +16,7 @@ const ITEMS: AddItem[] = [
 ];
 
 type Props = {
-    currentShape: ShapeType;
+    currentShape: ShapeType | null;
     onPickShape: (shape: ShapeType) => void;
 }
 

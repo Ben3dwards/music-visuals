@@ -5,7 +5,9 @@ import { MODELS } from "./models";
 export type ShapeType = "cube" | "sphere" | "model";
 export type ShapeReactions = TransformReactions & { glow: Reaction };
 
-export type ShapeSettings = {
+export type SceneObject = {
+    id: string;
+    name: string;
     type: ShapeType;
     finish: ShapeFinish;
     colour: string; // hex
@@ -86,7 +88,7 @@ export type LightingSettings = {
 
 
 export type VisualSettings = {
-    shape: ShapeSettings;
+    objects: SceneObject[];
     lighting: LightingSettings;
     camera: CameraSettings;
     spectrum: SpectrumSettings;
@@ -95,38 +97,53 @@ export type VisualSettings = {
 };
 
 
+//Settings groups, everything except the object list
+export type SettingsGroup = Exclude<keyof VisualSettings, "objects">;
+
 // Updates part of one settings group, e.g. updateSettings("smoke", { density: 0.8 }) 
-export type UpdateSettings = <K extends keyof VisualSettings>(
+export type UpdateSettings = <K extends SettingsGroup>(
     group: K,
     changes: Partial<VisualSettings[K]>,
 ) => void;
 
+//Updates part of one object. updateObject(id, { Colour: "00ffff" })
+export type UpdateObject = (id: string, changes: Partial<SceneObject>) => void;
 
-export const defaultSettings: VisualSettings = {
-    shape: {
-        type: "cube",
+const TYPE_NAMES: Record<ShapeType, string> = { cube: "Cube", sphere: "Sphere", model: "Model" };
+
+//Create a new object with default settings.
+export function createObject(type: ShapeType = "cube"): SceneObject {
+    return {
+        id:crypto.randomUUID(),
+        name: TYPE_NAMES[type],
+        type,
         modelUrl: MODELS[0].url,
+        rotation: { x: 0, y: 180, z: 0},
         finish: "glow",
         colour: "#ff0080",
         scale: 1,
         bloom: 1,
         border: { enabled: true, colour: "#000000", width: 0.25},
-        rotation: { x: 0, y: 180, z: 0},
         reactions: {
             stretch: {
                 x: { source: "midBass", amount: 0.5 },
                 y: { source: "mid", amount: 0.5 },
                 z: { source: "high", amount: 1 },
             },
-            spin: {
+            spin:{
                 x: { source: "none", amount: 0 },
                 y: { source: "subBass", amount: 0.3 },
                 z: { source: "subBass", amount: 0.3 },
             },
-            glow: { source: "midBass", amount: 1},
+            glow: { source: "midBass", amount: 1 },
         },
-    },
+    };
+}
 
+
+export const defaultSettings: VisualSettings = {
+    objects: [createObject("cube")],
+    
     lighting: {
         type: "ambient",
         intensity: 1,

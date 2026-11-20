@@ -5,6 +5,7 @@ import type {
     LightType,
     ShapeFinish,
     ShapeType,
+    UpdateObject,
     UpdateSettings,
     VisualSettings,
     WindMode,
@@ -16,6 +17,8 @@ import type {
 export type PanelSectionProps = {
     settings: VisualSettings;
     onChange: UpdateSettings;
+    selectedId: string | null; //Which object is being edited
+    onObjectChange: UpdateObject; // change one object
 };
 
 
