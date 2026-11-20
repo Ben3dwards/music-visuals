@@ -116,7 +116,8 @@ export function createSmoke(scene: Scene): Effect {
     }
 
     return {
-        apply({ smoke, shape }: VisualSettings) {
+        apply({ smoke, objects }: VisualSettings) {
+            const scale = objects[0]?.scale ?? 1;
             if (smoke.enabled && !particles.isStarted()) particles.start();
             if (!smoke.enabled && particles.isStarted()) particles.stop();
 
@@ -125,7 +126,7 @@ export function createSmoke(scene: Scene): Effect {
             windIntensity = smoke.wind;
 
             //Spawn just outside the shape
-            particles.createSphereEmitter(TUNING.spawnRadius * shape.scale * smoke.spread, 0);
+            particles.createSphereEmitter(TUNING.spawnRadius * scale * smoke.spread, 0);
 
             //Puff size
              particles.minSize = TUNING.puffSize.min * smoke.size;

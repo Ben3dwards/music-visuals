@@ -4,7 +4,7 @@ import ControlPanel from "./components/ControlPanel";
 import TopBar from "./components/TopBar";
 import AddBar from "./components/AddBar";
 import { audio } from "./audio/audioAnalyser";
-import { defaultSettings, type UpdateSettings, type VisualSettings } from "./scene/settings";
+import { defaultSettings, type UpdateObject, type UpdateSettings, type VisualSettings } from "./scene/settings";
 
 
 export default function App() {
@@ -12,6 +12,7 @@ export default function App() {
   const [listening, setListening] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [performing, setPerforming] = useState(false);
+  const [selectedId] = useState<string | null>(defaultSettings.objects[0]?.id ?? null);
 
   const updateSettings: UpdateSettings = (group, changes) => {
     setSettings((previous) => ({
@@ -19,6 +20,15 @@ export default function App() {
       [group]: { ...previous[group], ...changes },
     }));
   };
+
+  const updateObject: UpdateObject = (id, changes) => {
+    setSettings((previous) => ({
+      ...previous,
+      objects: previous.objects.map((object) => (object.id === id ? { ...object, ...changes } : object)),
+    }));
+  };
+
+  const selectedObject = settings.objects.find((object) => object.id === selectedId) ?? null;
 
   //leave performence mode when full screen ends or esc is pressed
   useEffect(() => {
@@ -79,9 +89,17 @@ export default function App() {
               </p>
              )}
 
-             <ControlPanel settings={settings} onChange={updateSettings} />
+             <ControlPanel 
+                settings={settings} 
+                onChange={updateSettings} 
+                selectedId={selectedId}
+                onObjectChange={updateObject}
+              />
 
-             <AddBar currentShape={settings.shape.type} onPickShape={(type) => updateSettings("shape", { type })} />
+             <AddBar 
+              currentShape={selectedObject?.type ?? null}
+              onPickShape={(type) => selectedId && updateObject(selectedId, { type })}
+             />
           </>
         )}
       </main>

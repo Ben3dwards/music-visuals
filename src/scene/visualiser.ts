@@ -3,7 +3,7 @@ import { createLighting } from "./lighting";
 import { createAudioFeatures } from "../audio/audioFeatures";
 import type { Effect } from "./effect";
 import { createBackground } from "./background";
-import { createShapes } from "./shapes";
+import { createObjects } from "./objects";
 import { createSmoke } from "./smoke";
 import type { VisualSettings } from "./settings";
 import { createCamera } from "./camera";
@@ -21,7 +21,7 @@ export function createVisualiser(canvas: HTMLCanvasElement) {
         createCamera(scene, canvas),
         createBackground(scene),
         createLighting(scene),
-        createShapes(scene),
+        createObjects(scene),
         createSpectrum(scene),
         createSmoke(scene),
     ];

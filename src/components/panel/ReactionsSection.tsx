@@ -3,11 +3,16 @@ import ReactionControl from "../ReactionControl";
 import Section from "./Section";
 import { AXES, type PanelSectionProps } from "./shared";
 
-export default function ReactionsSection({ settings, onChange }: PanelSectionProps) {
-    const reactions = settings.shape.reactions;
+export default function ReactionsSection({ settings, selectedId, onObjectChange }: PanelSectionProps) {
+    const object = settings.objects.find((o) => o.id === selectedId);
+    if (!object) return null;
+
+
+    const { id, reactions } = object;
+
 
     function updateReactions(changes: Partial<ShapeReactions>) {
-        onChange("shape", { reactions: { ...reactions, ...changes } });
+        onObjectChange(id, { reactions: { ...reactions, ...changes } });
     }
 
     return (

@@ -154,11 +154,12 @@ export function createSpectrum(scene: Scene): Effect {
     }
 
     return {
-         apply({ spectrum: settings, shape }: VisualSettings) {
+         apply({ spectrum: settings, objects }: VisualSettings) {
+            const scale = objects[0]?.scale ?? 1;
             showRing = settings.ring;
             showGrid = settings.grid;
             heightScale = settings.height;
-            ringRadius = RING.radius * shape.scale * settings.radius;
+            ringRadius = RING.radius * scale * settings.radius;
             gridSpacing = GRID.spacing * settings.gridSpacing;
 
             const colour = Color3.FromHexString(settings.colour).scale(settings.brightness);
