@@ -18,11 +18,11 @@ function centreOnOrigin(root: AbstractMesh) {
 //One object in the scene: Builds the mesh, styles it and makes it react to the music
 export function createSceneObject(scene: Scene, id: string) {
     //music moves the pivot
-    const pivot = new TransformNode(`pivot-${id}`, scene);
-    const orientation = new TransformNode(`orientation-${id}`, scene);
-    const stretcher = new TransformNode(`stretch-${id}`, scene); 
-    orientation.parent = pivot;
-    stretcher.parent = orientation;
+    const transform = new TransformNode(`transform-${id}`, scene);
+    const spinner = new TransformNode(`spin-${id}`, scene);
+    const stretcher = new TransformNode(`stretch-${id}`, scene);
+    spinner.parent = transform;
+    stretcher.parent = spinner;
 
 
     let current: AbstractMesh | null = null;
@@ -30,7 +30,6 @@ export function createSceneObject(scene: Scene, id: string) {
     let currentModelUrl: string | null = null;
     let material: StandardMaterial | null = null;
     let colour = new Color3(1, 0, 0.5);
-    let baseScale = 1;
     let reactions: ShapeReactions | null = null;
     let finish: ShapeFinish = "glow";
     let bloom = 1;
@@ -129,28 +128,29 @@ export function createSceneObject(scene: Scene, id: string) {
             modelUrl = object.modelUrl;
             void setShape(object.type);
 
-            colour = Color3.FromHexString(object.colour);
-            baseScale = object.scale;
+            colour = Color3.FromHexString(object.colour);      
             reactions = object.reactions;
             finish = object.finish;
             bloom = object.bloom;
             border = object.border
             
             const toRadians = Math.PI / 180;
-            orientation.rotation.set(
+            transform.rotationQuaternion = null;
+            transform.position.set(object.position.x, object.position.y, object.position.z);
+            transform.rotation.set(
                 object.rotation.x * toRadians,
                 object.rotation.y * toRadians,
                 object.rotation.z * toRadians,
             );
-            pivot.position.set(object.position.x, object.position.y, object.position.z);
-            pivot.setEnabled(object.visible);
+            transform.scaling.setAll(object.scale);
+            transform.setEnabled(object.visible);
             applyStyle();
         },
-
+        node: transform,
         update(features: AudioFeatures) {
             if (!reactions) return;
 
-            applyTransformReactions(pivot, stretcher, reactions, features, baseScale);
+            applyTransformReactions(spinner, stretcher, reactions, features);
 
             if (material) {
                 const glow = readReaction(reactions.glow, features);
@@ -168,7 +168,7 @@ export function createSceneObject(scene: Scene, id: string) {
         dispose() {
             loadId++; // cancels any model still loading
             current?.dispose(false, true);
-            pivot.dispose();
+            transform.dispose();
         },
     };
 }

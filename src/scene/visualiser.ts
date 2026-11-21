@@ -5,16 +5,18 @@ import type { Effect } from "./effect";
 import { createBackground } from "./background";
 import { createObjects } from "./objects";
 import { createSmoke } from "./smoke";
-import type { VisualSettings } from "./settings";
+import type { VisualSettings, ObjectTransform } from "./settings";
 import { createCamera } from "./camera";
 import { createSpectrum } from "./spectrum";
+import { createGizmos, type GizmoMode } from "./gizmos";
 
 type VisualiserOptions = {
     onSelect: (id: string | null) => void;
+    onTransformEnd: (id: string, transform: ObjectTransform) => void; //after a gizmo drag
 };
 
 
-export function createVisualiser(canvas: HTMLCanvasElement, { onSelect }: VisualiserOptions) {
+export function createVisualiser(canvas: HTMLCanvasElement, { onSelect, onTransformEnd }: VisualiserOptions) {
     const engine = new Engine(canvas, true);
     const scene = new Scene(engine);
 
@@ -30,6 +32,11 @@ export function createVisualiser(canvas: HTMLCanvasElement, { onSelect }: Visual
         createSpectrum(scene),
         createSmoke(scene),
     ];
+
+    let selectedId: string | null = null;
+    const gizmos = createGizmos(scene, (transform) => {
+        if (selectedId) onTransformEnd(selectedId, transform);
+    });
 
       scene.onPointerObservable.add((info) => {
             if (info.type !== PointerEventTypes.POINTERTAP) return;
@@ -52,11 +59,19 @@ export function createVisualiser(canvas: HTMLCanvasElement, { onSelect }: Visual
         },
 
         select(id: string | null) {
+            selectedId = id;
             objects.select(id);
+            gizmos.attach(id ? objects.getNode(id) : null);
         },
+
+        setGizmoMode(mode: GizmoMode) {
+            gizmos.setMode(mode);
+        },
+
 
         dispose() {
             window.removeEventListener("resize", onResize);
+            gizmos.dispose();
             for (const effect of effects) effect.dispose();
             engine.dispose();
         },

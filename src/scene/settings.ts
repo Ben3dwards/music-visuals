@@ -19,7 +19,10 @@ export type SceneObject = {
     rotation: Axes<number>;
     position: Axes<number>;
     visible: boolean; 
+    
 };
+
+export type ObjectTransform = Pick<SceneObject, "position" | "rotation" | "scale">;
 
 //Spectrum visualisor
 export type SpectrumSettings = {

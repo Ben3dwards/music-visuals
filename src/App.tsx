@@ -15,6 +15,8 @@ import {
   type VisualSettings,
 } from "./scene/settings";
 import Outliner from "./components/Outliner";
+import GizmoToolbar from "./components/GizmoToolbar";
+import type { GizmoMode } from "./scene/gizmos";
 
 export default function App() {
   const [settings, setSettings] = useState<VisualSettings>(defaultSettings);
@@ -22,6 +24,7 @@ export default function App() {
   const [error, setError] = useState<string | null>(null);
   const [performing, setPerforming] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(defaultSettings.objects[0]?.id ?? null);
+  const [gizmoMode, setGizmoMode] = useState<GizmoMode>("move");
 
   const updateSettings: UpdateSettings = (group, changes) => {
     setSettings((previous) => ({
@@ -113,9 +116,31 @@ useEffect(() => {
   return () => window.removeEventListener("keydown", onKeyDown);
 }, [selectedId]);
 
+// W / E / R switch between move, rotate and scale (but not while typing)
+useEffect(() => {
+  function onKeyDown(e: KeyboardEvent) {
+    const tag = (e.target as HTMLElement).tagName;
+    if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
+
+    const key = e.key.toLowerCase();
+    if (key === "w") setGizmoMode("move");
+    if (key === "e") setGizmoMode("rotate");
+    if (key === "r") setGizmoMode("scale");
+  }
+
+  window.addEventListener("keydown", onKeyDown);
+  return () => window.removeEventListener("keydown", onKeyDown);
+}, []);
+
   return (
       <main className={`relative h-screen w-screen overflow-hidden bg-black ${performing ? "cursor-none" : ""}`}>
-        <BabylonCanvas settings={settings} selectedId={performing ? null : selectedId} onSelectObject={setSelectedId}/>
+        <BabylonCanvas
+          settings={settings}
+          selectedId={performing ? null : selectedId}
+          gizmoMode={gizmoMode}
+          onSelectObject={setSelectedId}
+          onTransformEnd={updateObject}
+        />
 
         {!performing && (
           <>
@@ -151,6 +176,7 @@ useEffect(() => {
               />
 
               <AddBar onAdd={addObject} />
+              {selectedId && <GizmoToolbar mode={gizmoMode} onChange={setGizmoMode} />}
           </>
         )}
       </main>

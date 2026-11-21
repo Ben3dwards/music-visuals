@@ -1,15 +1,16 @@
-import type { Scene } from "@babylonjs/core";
+import type { Scene, TransformNode } from "@babylonjs/core";
 import type { AudioFeatures } from "../audio/audioFeatures";
 import type { Effect } from "./effect";
 import { createSceneObject, type SceneObjectInstance } from "./sceneObject";
 import type { VisualSettings } from "./settings";
 
 
+
 // Keeps the scenes objets in sync with the settings list
-export function createObjects(scene: Scene): Effect & { select(id: string | null): void } {
+export function createObjects(scene: Scene): Effect & { select(id: string | null): void; getNode(id: string): TransformNode | null;} {
     const instances = new Map<string, SceneObjectInstance>();
     let selectedId: string | null = null;
-
+    
     return{
         apply({ objects }: VisualSettings) {
             //Remove objects no longer in the list
@@ -42,6 +43,10 @@ export function createObjects(scene: Scene): Effect & { select(id: string | null
             for (const [instanceId, instance] of instances) {
                 instance.setSelected(instanceId === id);
             }
+        },
+
+        getNode(id: string) {
+            return instances.get(id)?.node ?? null;
         },
 
         dispose() {
