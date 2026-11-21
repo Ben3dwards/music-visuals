@@ -11,6 +11,8 @@ type Props = {
 
 
 export default function TransformControls({ entity, onChange }: Props) {
+    const positionLabel = entity.attachedTo ? "Offset" : "Position";
+
     return (
         <>
             <Slider
@@ -25,12 +27,12 @@ export default function TransformControls({ entity, onChange }: Props) {
             {AXES.map((axis) => (
                 <Slider 
                     key={`position-${axis}`}
-                    label={`Position ${axis.toUpperCase()}`}
+                    label={`${positionLabel} ${axis.toUpperCase()}`}
                     value={entity.position[axis]}
                     min={-10}
                     max={10}
                     step={0.1}
-                    onChange={(value) => onChange({ position: { ...entity.position, [axis]: value } })}
+                     onChange={(value) => onChange({ position: { ...entity.position, [axis]: value } })}
                 />
             ))}
         </>

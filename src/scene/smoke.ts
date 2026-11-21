@@ -66,6 +66,8 @@ export function createSmoke(scene: Scene, id: string): EntityInstance {
     let density = 0.5;
     let windMode: WindMode = "random";
     let windIntensity = 1;
+    let spreadRadius = TUNING.spawnRadius;
+    let currentRadius = 0;  
     const windTarget = new Vector3();
     const outward = new Vector3();
 
@@ -122,7 +124,7 @@ export function createSmoke(scene: Scene, id: string): EntityInstance {
             windMode = smoke.windMode;
             windIntensity = smoke.wind;
 
-            particles.createSphereEmitter(TUNING.spawnRadius * object.scale * smoke.spread, 0);
+            spreadRadius = TUNING.spawnRadius * smoke.spread;
             particles.minSize = TUNING.puffSize.min * smoke.size;
             particles.maxSize = TUNING.puffSize.max * smoke.size;
             particles.color1 = toPuffColour(smoke.colourA);
@@ -133,6 +135,13 @@ export function createSmoke(scene: Scene, id: string): EntityInstance {
             // Follow the node: the emitter is `centre`, so updating it moves where smoke spawns
             transform.computeWorldMatrix(true);
             centre.copyFrom(transform.getAbsolutePosition());
+
+            const radius = spreadRadius * transform.absoluteScaling.x;
+            if (Math.abs(radius - currentRadius) > 0.001) {
+                particles.createSphereEmitter(radius, 0);
+                currentRadius = radius;
+            }
+
 
             updateEmitRate(bands.subBass);
             updateWind(bands.mid, bands.high);

@@ -48,6 +48,7 @@ export type EntityBase = {
     rotation: Axes<number>; // degrees
     scale: number;
     visible: boolean;
+    attachedTo: string | null;
 };
 
 export type ShapeObject = EntityBase & {
@@ -168,6 +169,7 @@ function baseEntity(type: AddType): EntityBase {
         rotation: { x: 0, y: 0, z: 0 },
         scale: 1,
         visible: true,
+        attachedTo: null,
     };
 }
 
@@ -230,9 +232,16 @@ export function spawnPosition(index: number): Axes<number> {
     return { x, y: 0, z: 0 };
 }
 
+export function withoutObject(objects: SceneObject[], id: string): SceneObject[] {
+    return objects
+        .filter((object) => object.id !== id)
+        .map((object) => (object.attachedTo === id ? { ...object, attachedTo: null } : object));
+}
+
+const startingCube = createObject("cube");
 export const defaultSettings: VisualSettings = {
 
-    objects: [createObject("cube"), createSpectrumObject(), createSmokeObject()],
+    objects: [startingCube, createSpectrumObject({ attachedTo: startingCube.id }),createSmokeObject({ attachedTo: startingCube.id }),],
 
     lighting: {
     type: "ambient",

@@ -4,6 +4,7 @@ import { SMOKE_CONTROLS, SPECTRUM_CONTROLS } from "./definitions";
 import Section from "./Section";
 import TransformControls from "./TransformControls";
 import type { PanelSectionProps } from "./shared";
+import { Select, type Option } from "../controls";
 
 //Settings for a selected spectrum or smoke item
 export default function EffectObjectSection({ settings, selectedId, onObjectChange, onDeleteObject }: PanelSectionProps) {
@@ -14,6 +15,26 @@ export default function EffectObjectSection({ settings, selectedId, onObjectChan
 
     function reset() {
         onObjectChange(id, object!.kind === "spectrum" ? { spectrum: { ...DEFAULT_SPECTRUM } } : { smoke: { ...DEFAULT_SMOKE } });
+        
+    }
+
+    const targetOptions: Option<string>[] = [
+        { value: "", label: "Nothing (free)" },
+        ...settings.objects
+            .filter((o) => o.kind === "shape")
+            .map((o) => ({ value: o.id, label: o.name })),
+        ];
+
+
+    const setAttachment = (targetId: string) => {
+        if (targetId) {
+            //Attatch to objects centre
+            onObjectChange(id, { attachedTo: targetId, position: { x: 0, y: 0, z: 0 } });
+        }else{
+            //Detatch and stay where it is
+            const target = settings.objects.find((o) => o.id === object.attachedTo);
+            onObjectChange(id, { attachedTo: null, position: target ? { ...target.position } : object.position });
+        }
     }
 
     return (
@@ -25,6 +46,13 @@ export default function EffectObjectSection({ settings, selectedId, onObjectChan
             >
                 Delete {object.name}
             </button>
+
+            <Select
+                label="Attached to"
+                options={targetOptions}
+                value={object.attachedTo ?? ""}
+                onChange={setAttachment}
+            />
 
             <TransformControls entity={object} onChange={(changes) => onObjectChange(id, changes)} />
 

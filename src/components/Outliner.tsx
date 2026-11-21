@@ -33,6 +33,9 @@ export default function Outliner({ objects, selectedId, onSelect, onRename, onSe
 
       {objects.map((object) => {
         const selected = object.id === selectedId;
+        const attachedToName = object.attachedTo
+            ? objects.find((o) => o.id === object.attachedTo)?.name
+            : null;
 
         return (
           <div
@@ -54,8 +57,9 @@ export default function Outliner({ objects, selectedId, onSelect, onRename, onSe
                 className="min-w-0 flex-1 rounded bg-white/10 px-1 text-white outline-none"
               />
             ) : (
-              <span onDoubleClick={() => startRename(object)} title="Double-click to rename" className="min-w-0 flex-1 truncate">
-                {object.name}
+              <span onDoubleClick={() => startRename(object)} title="Double-click to rename" className="flex min-w-0 flex-1 items-baseline gap-1">
+                <span className="truncate">{object.name}</span>
+                {attachedToName && <span className="shrink-0 text-xs text-white/40">on {attachedToName}</span>}
               </span>
             )}
 
@@ -87,4 +91,4 @@ export default function Outliner({ objects, selectedId, onSelect, onRename, onSe
       })}
     </aside>
   );
-};
+}
