@@ -1,5 +1,5 @@
 import { MODELS } from "../../scene/models";
-import type { SceneObject } from "../../scene/settings";
+import { createObject, type SceneObject } from "../../scene/settings";
 import { ButtonGroup, ColourPicker, FileButton, Select, Slider, Toggle, type Option } from "../controls";
 import Section from "./Section";
 import { AXES, FINISH_OPTIONS, SHAPE_OPTIONS, type PanelSectionProps } from "./shared";
@@ -11,6 +11,18 @@ export default function ShapeSection({ settings, selectedId, onObjectChange, onD
     if (!shape) return null; 
 
     const update = (changes: Partial<SceneObject>) => onObjectChange(shape.id, changes);
+
+        function resetAppearance() {
+            const defaults = createObject(shape!.type);
+            update({
+                finish: defaults.finish,
+                colour: defaults.colour,
+                scale: defaults.scale,
+                rotation: defaults.rotation,
+                bloom: defaults.bloom,
+                border: defaults.border,
+            });
+        }
 
     // Built-in models, plus the user's upload if they've picked one
     const isCustomModel = !MODELS.some((model) => model.url === shape.modelUrl);
@@ -25,7 +37,7 @@ export default function ShapeSection({ settings, selectedId, onObjectChange, onD
     }
 
     return (
-        <Section title={shape.name} defaultOpen>
+        <Section title={shape.name} defaultOpen onReset={resetAppearance}>
             <button
                 type="button"
                 onClick={() => onDeleteObject(shape.id)}

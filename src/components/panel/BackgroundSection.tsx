@@ -2,6 +2,7 @@ import { BACKGROUND_IMAGES } from "../../scene/backgroundImages";
 import { ButtonGroup, ColourPicker, FileButton, Select, Slider, type Option } from "../controls";
 import Section from "./Section";
 import { BACKGROUND_MODE_OPTIONS, type PanelSectionProps } from "./shared";
+import { defaultSettings } from "../../scene/settings";
 
 export default function BackgroundSection({ settings, onChange }: PanelSectionProps) {
     const { background } = settings;
@@ -19,7 +20,7 @@ export default function BackgroundSection({ settings, onChange }: PanelSectionPr
     }
 
     return(
-        <Section title="Background">
+        <Section title="Background" onReset={() => onChange("background", defaultSettings.background)}>
             <ButtonGroup
                 label="Type"
                 options={BACKGROUND_MODE_OPTIONS}
