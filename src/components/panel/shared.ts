@@ -19,6 +19,8 @@ export type PanelSectionProps = {
     onChange: UpdateSettings;
     selectedId: string | null; //Which object is being edited
     onObjectChange: UpdateObject; // change one object
+    onSelectObject: (id: string | null) => void; 
+    onDeleteObject: (id: string) => void;        
 };
 
 

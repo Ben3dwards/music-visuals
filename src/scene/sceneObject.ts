@@ -116,6 +116,7 @@ export function createSceneObject(scene: Scene, id: string) {
 
     return {
         apply(object: SceneObject) {
+            
             modelUrl = object.modelUrl;
             void setShape(object.type);
 
@@ -125,14 +126,14 @@ export function createSceneObject(scene: Scene, id: string) {
             finish = object.finish;
             bloom = object.bloom;
             border = object.border
-
+            
             const toRadians = Math.PI / 180;
             orientation.rotation.set(
                 object.rotation.x * toRadians,
                 object.rotation.y * toRadians,
                 object.rotation.z * toRadians,
             );
-
+            pivot.position.set(object.position.x, object.position.y, object.position.z);
             applyStyle();
         },
 

@@ -5,7 +5,7 @@ import Section from "./Section";
 import { AXES, FINISH_OPTIONS, SHAPE_OPTIONS, type PanelSectionProps } from "./shared";
 
 
-export default function ShapeSection({ settings, selectedId, onObjectChange }: PanelSectionProps) {
+export default function ShapeSection({ settings, selectedId, onObjectChange, onDeleteObject }: PanelSectionProps) {
     //find the object being edited, nothing selected - show nothing
     const shape = settings.objects.find((object) => object.id === selectedId);
     if (!shape) return null; 
@@ -25,7 +25,15 @@ export default function ShapeSection({ settings, selectedId, onObjectChange }: P
     }
 
     return (
-        <Section title="Shape" defaultOpen>
+        <Section title={shape.name} defaultOpen>
+            <button
+                type="button"
+                onClick={() => onDeleteObject(shape.id)}
+                className="rounded bg-red-500/20 px-3 py-1.5 text-sm text-red-300 hover:bg-red-500/30"
+            >
+                Delete {shape.name}
+            </button>
+
             <ButtonGroup 
                 label="Type"
                 options={SHAPE_OPTIONS}
@@ -68,6 +76,18 @@ export default function ShapeSection({ settings, selectedId, onObjectChange }: P
                 step={0.05}
                 onChange={(scale) => update({ scale })}
             />
+
+            {AXES.map((axis) => (
+                  <Slider
+                    key={`position-${axis}`}
+                    label={`Position ${axis.toUpperCase()}`}
+                    value={shape.position[axis]}
+                    min={-10}
+                    max={10}
+                    step={0.1}
+                    onChange={(value) => update({ position: { ...shape.position, [axis]: value } })}
+                  />
+            ))}
 
             {AXES.map((axis) => (
                 <Slider

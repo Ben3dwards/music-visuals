@@ -4,7 +4,16 @@ import ControlPanel from "./components/ControlPanel";
 import TopBar from "./components/TopBar";
 import AddBar from "./components/AddBar";
 import { audio } from "./audio/audioAnalyser";
-import { defaultSettings, type UpdateObject, type UpdateSettings, type VisualSettings } from "./scene/settings";
+import {
+  createObject,
+  defaultSettings,
+  nextObjectName,
+  spawnPosition,
+  type ShapeType,
+  type UpdateObject,
+  type UpdateSettings,
+  type VisualSettings,
+} from "./scene/settings";
 
 
 export default function App() {
@@ -12,7 +21,7 @@ export default function App() {
   const [listening, setListening] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [performing, setPerforming] = useState(false);
-  const [selectedId] = useState<string | null>(defaultSettings.objects[0]?.id ?? null);
+  const [selectedId, setSelectedId] = useState<string | null>(defaultSettings.objects[0]?.id ?? null);
 
   const updateSettings: UpdateSettings = (group, changes) => {
     setSettings((previous) => ({
@@ -28,7 +37,22 @@ export default function App() {
     }));
   };
 
-  const selectedObject = settings.objects.find((object) => object.id === selectedId) ?? null;
+  function addObject(type: ShapeType) {
+    const object = createObject(type, {
+      name: nextObjectName(type, settings.objects),
+      position: spawnPosition(settings.objects.length),
+    });
+    setSettings((previous) => ({ ...previous, objects: [...previous.objects, object] }));
+    setSelectedId(object.id); // select it, so the panel shows it straight away
+  }
+
+  function deleteObject(id: string) {
+    setSettings((previous) => ({
+      ...previous,
+      objects: previous.objects.filter((object) => object.id !== id),
+    }));
+    setSelectedId((current) => (current === id ? null : current));
+  }
 
   //leave performence mode when full screen ends or esc is pressed
   useEffect(() => {
@@ -89,17 +113,16 @@ export default function App() {
               </p>
              )}
 
-             <ControlPanel 
-                settings={settings} 
-                onChange={updateSettings} 
+             <ControlPanel
+                settings={settings}
+                onChange={updateSettings}
                 selectedId={selectedId}
                 onObjectChange={updateObject}
+                onSelectObject={setSelectedId}
+                onDeleteObject={deleteObject}
               />
 
-             <AddBar 
-              currentShape={selectedObject?.type ?? null}
-              onPickShape={(type) => selectedId && updateObject(selectedId, { type })}
-             />
+              <AddBar onAdd={addObject} />
           </>
         )}
       </main>

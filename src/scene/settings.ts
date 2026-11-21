@@ -17,6 +17,7 @@ export type SceneObject = {
     reactions: ShapeReactions;
     modelUrl: string; // which model to show when type is "model"
     rotation: Axes<number>;
+    position: Axes<number>;
 };
 
 //Spectrum visualisor
@@ -111,13 +112,26 @@ export type UpdateObject = (id: string, changes: Partial<SceneObject>) => void;
 
 const TYPE_NAMES: Record<ShapeType, string> = { cube: "Cube", sphere: "Sphere", model: "Model" };
 
+//readable name for a new object
+export function nextObjectName(type: ShapeType, objects: SceneObject[]): string {
+    const count = objects.filter((object) => object.type === type).length;
+    return `${TYPE_NAMES[type]} ${count + 1}`;
+}
+
+export function spawnPosition(index: number): Axes<number> {
+    const step = Math.ceil(index / 2) * 2;
+    const x = index === 0 ? 0 : index % 2 === 1 ? step : -step;
+    return { x, y: 0, z: 0 };
+}
+
 //Create a new object with default settings.
-export function createObject(type: ShapeType = "cube"): SceneObject {
+export function createObject(type: ShapeType = "cube", overrides: Partial<SceneObject> = {}): SceneObject {
     return {
         id:crypto.randomUUID(),
-        name: TYPE_NAMES[type],
+        name: `${TYPE_NAMES[type]} 1`,
         type,
         modelUrl: MODELS[0].url,
+        position: { x: 0, y: 0, z: 0 },
         rotation: { x: 0, y: 180, z: 0},
         finish: "glow",
         colour: "#ff0080",
@@ -137,6 +151,7 @@ export function createObject(type: ShapeType = "cube"): SceneObject {
             },
             glow: { source: "midBass", amount: 1 },
         },
+        ...overrides,
     };
 }
 

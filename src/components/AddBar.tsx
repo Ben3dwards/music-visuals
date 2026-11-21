@@ -16,34 +16,28 @@ const ITEMS: AddItem[] = [
 ];
 
 type Props = {
-    currentShape: ShapeType | null;
-    onPickShape: (shape: ShapeType) => void;
+    onAdd: (shape: ShapeType) => void;
 }
 
-export default function AddBar({ currentShape, onPickShape }: Props) {
+export default function AddBar({ onAdd }: Props) {
     return (
         <nav className="absolute bottom-4 left-1/2 flex -translate-x-1/2 gap-1 rounded-lg bg-black/60 p-1 text-sm text-white backdrop-blur">
-            {ITEMS.map(({ label, shape }) => {
-                if (!shape) {
-                    return (
-                        <button key={label} type="button" disabled title="Coming soon" className="cursor-not-allowed rounded px-3 py-2 text-white/30">
-                            {label}
-                        </button>
-                    );
-                }
-
-                const active = shape === currentShape;
-                return (
+            {ITEMS.map(({ label, shape }) =>
+                shape ? (
                     <button
                         key={label}
                         type="button"
-                        onClick={() => onPickShape(shape)}
-                        className={`rounded px-3 py-2 transition ${active ? "bg-white/20" : "text-white/70 hover:text-white"}`}
+                        onClick={() => onAdd(shape)}
+                        className="rounded px-3 py-2 text-white/70 transition hover:bg-white/10 hover:text-white"
                     >
+                        + {label}
+                    </button>
+                ) : (
+                    <button key={label} type="button" disabled title="Coming soon" className="cursor-not-allowed rounded px-3 py-2 text-white/30">
                         {label}
                     </button>
-                );
-            })}
+                ),
+            )}
         </nav>
     );
 }
