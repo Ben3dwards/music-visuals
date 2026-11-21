@@ -5,7 +5,7 @@ import { AXES, type PanelSectionProps } from "./shared";
 
 export default function ReactionsSection({ settings, selectedId, onObjectChange }: PanelSectionProps) {
     const object = settings.objects.find((o) => o.id === selectedId);
-    if (!object) return null;
+    if (!object || object.kind !== "shape") return null;
 
 
     const { id, reactions } = object;

@@ -4,6 +4,7 @@ import type { AudioFeatures } from "../audio/audioFeatures";
 import { setGlowStrength } from "./glow";
 import { applyTransformReactions, readReaction } from "./reactions";
 import type { BorderSettings, SceneObject, ShapeFinish, ShapeReactions, ShapeType } from "./settings";
+import { applyEntityTransform, type EntityInstance } from "./entity";
 
 
 
@@ -16,7 +17,7 @@ function centreOnOrigin(root: AbstractMesh) {
 }
 
 //One object in the scene: Builds the mesh, styles it and makes it react to the music
-export function createSceneObject(scene: Scene, id: string) {
+export function createSceneObject(scene: Scene, id: string): EntityInstance {
     //music moves the pivot
     const transform = new TransformNode(`transform-${id}`, scene);
     const spinner = new TransformNode(`spin-${id}`, scene);
@@ -124,27 +125,20 @@ export function createSceneObject(scene: Scene, id: string) {
         },
         
         apply(object: SceneObject) {
-            
+              if (object.kind !== "shape") return; // only shapes are handled here
+
             modelUrl = object.modelUrl;
             void setShape(object.type);
 
-            colour = Color3.FromHexString(object.colour);      
+            colour = Color3.FromHexString(object.colour);
             reactions = object.reactions;
             finish = object.finish;
             bloom = object.bloom;
-            border = object.border
-            
-            const toRadians = Math.PI / 180;
-            transform.rotationQuaternion = null;
-            transform.position.set(object.position.x, object.position.y, object.position.z);
-            transform.rotation.set(
-                object.rotation.x * toRadians,
-                object.rotation.y * toRadians,
-                object.rotation.z * toRadians,
-            );
-            transform.scaling.setAll(object.scale);
-            transform.setEnabled(object.visible);
+            border = object.border;
+
+            applyEntityTransform(transform, object);
             applyStyle();
+
         },
         node: transform,
         update(features: AudioFeatures) {
@@ -173,4 +167,3 @@ export function createSceneObject(scene: Scene, id: string) {
     };
 }
 
-export type SceneObjectInstance = ReturnType<typeof createSceneObject>;

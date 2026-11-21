@@ -4,10 +4,8 @@ import { createAudioFeatures } from "../audio/audioFeatures";
 import type { Effect } from "./effect";
 import { createBackground } from "./background";
 import { createObjects } from "./objects";
-import { createSmoke } from "./smoke";
 import type { VisualSettings, ObjectTransform } from "./settings";
 import { createCamera } from "./camera";
-import { createSpectrum } from "./spectrum";
 import { createGizmos, type GizmoMode } from "./gizmos";
 
 type VisualiserOptions = {
@@ -29,9 +27,8 @@ export function createVisualiser(canvas: HTMLCanvasElement, { onSelect, onTransf
         createBackground(scene),
         createLighting(scene),
         objects,
-        createSpectrum(scene),
-        createSmoke(scene),
     ];
+
 
     let selectedId: string | null = null;
     const gizmos = createGizmos(scene, (transform) => {

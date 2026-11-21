@@ -1,5 +1,5 @@
 import { MODELS } from "../../scene/models";
-import { createObject, type SceneObject } from "../../scene/settings";
+import { createObject, type ShapeObject } from "../../scene/settings";
 import { ButtonGroup, ColourPicker, FileButton, Select, Slider, Toggle, type Option } from "../controls";
 import Section from "./Section";
 import { AXES, FINISH_OPTIONS, SHAPE_OPTIONS, type PanelSectionProps } from "./shared";
@@ -8,21 +8,21 @@ import { AXES, FINISH_OPTIONS, SHAPE_OPTIONS, type PanelSectionProps } from "./s
 export default function ShapeSection({ settings, selectedId, onObjectChange, onDeleteObject }: PanelSectionProps) {
     //find the object being edited, nothing selected - show nothing
     const shape = settings.objects.find((object) => object.id === selectedId);
-    if (!shape) return null; 
+    if (!shape || shape.kind !== "shape") return null;
 
-    const update = (changes: Partial<SceneObject>) => onObjectChange(shape.id, changes);
+    const update = (changes: Partial<ShapeObject>) => onObjectChange(shape.id, changes);
 
-        function resetAppearance() {
-            const defaults = createObject(shape!.type);
-            update({
-                finish: defaults.finish,
-                colour: defaults.colour,
-                scale: defaults.scale,
-                rotation: defaults.rotation,
-                bloom: defaults.bloom,
-                border: defaults.border,
-            });
-        }
+    const resetAppearance = () => {
+        const defaults = createObject(shape.type);
+        update({
+            finish: defaults.finish,
+            colour: defaults.colour,
+            scale: defaults.scale,
+            rotation: defaults.rotation,
+            bloom: defaults.bloom,
+            border: defaults.border,
+        });
+    }
 
     // Built-in models, plus the user's upload if they've picked one
     const isCustomModel = !MODELS.some((model) => model.url === shape.modelUrl);
@@ -31,8 +31,8 @@ export default function ShapeSection({ settings, selectedId, onObjectChange, onD
         ...(isCustomModel ? [{ value: shape.modelUrl, label: "Your model" }] : []),
     ];
 
-    function uploadModel(file: File) {
-        if (shape!.modelUrl.startsWith("blob:")) URL.revokeObjectURL(shape!.modelUrl);
+    const uploadModel = (file: File) => {
+        if (shape.modelUrl.startsWith("blob:")) URL.revokeObjectURL(shape.modelUrl);
         update({ type: "model", modelUrl: URL.createObjectURL(file) });
     }
 

@@ -5,11 +5,12 @@ import TopBar from "./components/TopBar";
 import AddBar from "./components/AddBar";
 import { audio } from "./audio/audioAnalyser";
 import {
-  createObject,
+  createByType,
   defaultSettings,
   nextObjectName,
   spawnPosition,
-  type ShapeType,
+  type AddType,
+  type SceneObject,
   type UpdateObject,
   type UpdateSettings,
   type VisualSettings,
@@ -36,17 +37,19 @@ export default function App() {
   const updateObject: UpdateObject = (id, changes) => {
     setSettings((previous) => ({
       ...previous,
-      objects: previous.objects.map((object) => (object.id === id ? { ...object, ...changes } : object)),
+      objects: previous.objects.map((object) =>
+        object.id === id ? ({ ...object, ...changes } as SceneObject) : object,
+      ),
     }));
   };
 
-  function addObject(type: ShapeType) {
-    const object = createObject(type, {
+  function addObject(type: AddType) {
+    const object = createByType(type, {
       name: nextObjectName(type, settings.objects),
       position: spawnPosition(settings.objects.length),
     });
     setSettings((previous) => ({ ...previous, objects: [...previous.objects, object] }));
-    setSelectedId(object.id); // select it, so the panel shows it straight away
+    setSelectedId(object.id);
   }
 
   function deleteObject(id: string) {

@@ -1,7 +1,7 @@
-import { Scene, ParticleSystem, Texture, Vector3, Color3, Color4 } from "@babylonjs/core";
+import { Scene, ParticleSystem, Texture, Vector3, Color3, Color4, TransformNode } from "@babylonjs/core";
 import type { AudioFeatures } from "../audio/audioFeatures";
-import type { Effect } from "./effect";
-import type { VisualSettings, WindMode } from "./settings";
+import { applyEntityTransform, type EntityInstance } from "./entity";
+import type { SceneObject, WindMode } from "./settings";
 
 const TUNING = {
     spawnRadius: 1.5,
@@ -11,17 +11,16 @@ const TUNING = {
     wind: { changeChance: 0.01, highsBoost: 0.1, strength: 0.5, midsBoost: 4, easing: 0.05 },
     kickPush: { base: 2, boost: 4 },
     snarePush: { base: 3, boost: 5 },
-    disperseSkipChance: 0.3, // fraction of particles a hit leaves untouched
-    drag: 0.99,              // how much speed each particle keeps per frame
+    disperseSkipChance: 0.3,
+    drag: 0.99,
 };
 
-//which way the wind blows
-const WIND_DIRECTIONS: Record<Exclude<WindMode, "random">, Vector3> ={
+const WIND_DIRECTIONS: Record<Exclude<WindMode, "random">, Vector3> = {
     left: new Vector3(-1, 0, 0),
     right: new Vector3(1, 0, 0),
     up: new Vector3(0, 1, 0),
     down: new Vector3(0, -1, 0),
-}
+};
 
 function createSoftDot(scene: Scene): Texture {
     const size = 128;
@@ -42,55 +41,48 @@ function createSoftDot(scene: Scene): Texture {
     return new Texture(canvas.toDataURL(), scene);
 }
 
-//Turns a colour from the settings into more opaque puff folour
-function toPuffColour(hex: string): Color4{
-    return Color3.FromHexString(hex).toColor4(TUNING.puffAlpha)
+function toPuffColour(hex: string): Color4 {
+    return Color3.FromHexString(hex).toColor4(TUNING.puffAlpha);
 }
 
-export function createSmoke(scene: Scene): Effect {
-    const particles = new ParticleSystem("smoke", 3000, scene);
-    particles.particleTexture = createSoftDot(scene);
 
-    //spawn around shape on a sphere
-    particles.emitter = Vector3.Zero();
+
+export function createSmoke(scene: Scene, id: string): EntityInstance {
+    const transform = new TransformNode(`transform-${id}`, scene);
+    const centre = new Vector3(); //the node's world position, refreshed every frame
+
+    const particles = new ParticleSystem(`smoke-${id}`, 3000, scene);
+    particles.particleTexture = createSoftDot(scene);
+    particles.emitter = centre; //spawn around the centre point 
     particles.minEmitPower = 0.8;
     particles.maxEmitPower = 1.6;
-
-    //apperance
     particles.minLifeTime = 2;
     particles.maxLifeTime = 4;
     particles.colorDead = new Color4(0, 0, 0, 0);
     particles.blendMode = ParticleSystem.BLENDMODE_ADD;
-
     particles.emitRate = 0;
     particles.start();
 
-    //state
     let density = 0.5;
     let windMode: WindMode = "random";
     let windIntensity = 1;
-
     const windTarget = new Vector3();
     const outward = new Vector3();
 
-
-    //push particals awayfrom centre, like a shockwave
     function disperse(force: number) {
         for (const p of particles.particles) {
             if (Math.random() < TUNING.disperseSkipChance) continue;
-            p.position.normalizeToRef(outward);
-            p.direction.addInPlace(outward.scaleInPlace(force * (0.5 + Math.random())));
+                p.position.subtractToRef(centre, outward); //direction from the centre to this puff
+                outward.normalize();
+                p.direction.addInPlace(outward.scaleInPlace(force * (0.5 + Math.random())));
         }
     }
 
-    //more smoke when sub-bass is heavy. scaled by user settings
-    
     function updateEmitRate(subBass: number) {
         const { base, subBassBoost } = TUNING.emitRate;
         particles.emitRate = density * (base + subBass * subBassBoost);
     }
 
-    //blows smoke. a fixed dirction or random gusts changed by busy highs
     function updateWind(mid: number, high: number) {
         const { changeChance, highsBoost, strength, midsBoost, easing } = TUNING.wind;
 
@@ -107,36 +99,41 @@ export function createSmoke(scene: Scene): Effect {
         particles.gravity.y += (windTarget.y * windStrength - particles.gravity.y) * easing;
         particles.gravity.z += (windTarget.z * windStrength - particles.gravity.z) * easing;
     }
-    
-    // Slows every particle a bit. blasts settle back into drifting smoke. 
+
     function applyDrag() {
         for (const p of particles.particles) {
             p.direction.scaleInPlace(TUNING.drag);
+            }
         }
-    }
 
     return {
-        apply({ smoke, objects }: VisualSettings) {
-            const scale = objects[0]?.scale ?? 1;
-            if (smoke.enabled && !particles.isStarted()) particles.start();
-            if (!smoke.enabled && particles.isStarted()) particles.stop();
+        node: transform,
+
+        apply(object: SceneObject) {
+            if (object.kind !== "smoke") return;
+            applyEntityTransform(transform, object);
+
+            const smoke = object.smoke;
+            const active = object.visible && smoke.enabled;
+            if (active && !particles.isStarted()) particles.start();
+            if (!active && particles.isStarted()) particles.stop();
 
             density = smoke.density;
             windMode = smoke.windMode;
             windIntensity = smoke.wind;
 
-            //Spawn just outside the shape
-            particles.createSphereEmitter(TUNING.spawnRadius * scale * smoke.spread, 0);
-
-            //Puff size
-             particles.minSize = TUNING.puffSize.min * smoke.size;
-             particles.maxSize = TUNING.puffSize.max * smoke.size;
-
-             particles.color1 = toPuffColour(smoke.colourA);
-             particles.color2 = toPuffColour(smoke.colourB);
+            particles.createSphereEmitter(TUNING.spawnRadius * object.scale * smoke.spread, 0);
+            particles.minSize = TUNING.puffSize.min * smoke.size;
+            particles.maxSize = TUNING.puffSize.max * smoke.size;
+            particles.color1 = toPuffColour(smoke.colourA);
+            particles.color2 = toPuffColour(smoke.colourB);
         },
-        
+
         update({ bands, kick, snare }: AudioFeatures) {
+            // Follow the node: the emitter is `centre`, so updating it moves where smoke spawns
+            transform.computeWorldMatrix(true);
+            centre.copyFrom(transform.getAbsolutePosition());
+
             updateEmitRate(bands.subBass);
             updateWind(bands.mid, bands.high);
 
@@ -146,8 +143,13 @@ export function createSmoke(scene: Scene): Effect {
             applyDrag();
         },
 
+        setSelected() {
+            // Smoke isn't clickable; select it from the object list
+        },
+
         dispose() {
             particles.dispose();
+            transform.dispose();
         },
     };
 }
