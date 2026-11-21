@@ -37,6 +37,7 @@ export function createSceneObject(scene: Scene, id: string) {
     let border: BorderSettings = { enabled: true, colour: "#000000", width: 0.25 };
     let modelUrl = "";
     let loadId = 0; //Ignores model loads that finish after the user switched shape
+    let selected = false;
 
     async function build(type: ShapeType): Promise<AbstractMesh | null> {
         if (type === "model") {
@@ -65,7 +66,10 @@ export function createSceneObject(scene: Scene, id: string) {
         const meshes = [current, ...current.getChildMeshes()];
 
         for (const mesh of meshes) {
+            mesh.metadata = { ...mesh.metadata, objectId: id }; //click on this mesh knows which object it belongs to
+            mesh.showBoundingBox = selected;   
             setGlowStrength(mesh, bloom);
+
 
             if (currentType === "cube") {
                 if (border.enabled) {
@@ -115,6 +119,11 @@ export function createSceneObject(scene: Scene, id: string) {
     }
 
     return {
+        setSelected(value: boolean) {
+            selected = value;
+            applyStyle();
+        },
+        
         apply(object: SceneObject) {
             
             modelUrl = object.modelUrl;
@@ -134,6 +143,7 @@ export function createSceneObject(scene: Scene, id: string) {
                 object.rotation.z * toRadians,
             );
             pivot.position.set(object.position.x, object.position.y, object.position.z);
+            pivot.setEnabled(object.visible);
             applyStyle();
         },
 

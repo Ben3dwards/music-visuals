@@ -14,8 +14,9 @@ export function createBackground(scene: Scene): Effect{
         currentUrl = url;
         dome?.dispose();
         dome = new PhotoDome("backgroundDome", url, { resolution: 64, size: 1000 }, scene);
+        dome.mesh.isPickable = false;
     }
-
+    
     function hideImage(){
         dome?.dispose();
         dome = null;

@@ -6,8 +6,9 @@ import type { VisualSettings } from "./settings";
 
 
 // Keeps the scenes objets in sync with the settings list
-export function createObjects(scene: Scene): Effect {
+export function createObjects(scene: Scene): Effect & { select(id: string | null): void } {
     const instances = new Map<string, SceneObjectInstance>();
+    let selectedId: string | null = null;
 
     return{
         apply({ objects }: VisualSettings) {
@@ -25,6 +26,7 @@ export function createObjects(scene: Scene): Effect {
                 let instance = instances.get(object.id);
                 if (!instance) {
                     instance = createSceneObject(scene, object.id);
+                    instance.setSelected(object.id === selectedId);
                     instances.set(object.id, instance);
                 }
                 instance.apply(object);
@@ -33,6 +35,13 @@ export function createObjects(scene: Scene): Effect {
 
         update(features: AudioFeatures) {
             for (const instance of instances.values()) instance.update(features);
+        },
+
+        select(id: string | null) {
+            selectedId = id;
+            for (const [instanceId, instance] of instances) {
+                instance.setSelected(instanceId === id);
+            }
         },
 
         dispose() {

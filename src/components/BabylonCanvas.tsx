@@ -3,31 +3,45 @@ import { createVisualiser, type Visualiser } from "../scene/visualiser";
 import type { VisualSettings } from "../scene/settings";
 
 type Props = {
-    settings: VisualSettings;
+  settings: VisualSettings;
+  selectedId: string | null;
+  onSelectObject: (id: string | null) => void;
 };
 
-export default function BabylonCanvas({ settings }: Props){
+export default function BabylonCanvas({ settings, selectedId, onSelectObject }: Props) {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const visualiserRef = useRef<Visualiser | null>(null);
 
-    //create the visualiser once
+  //always call the latest onSelectObject
+    const onSelectRef = useRef(onSelectObject);
+    useEffect(() => {
+        onSelectRef.current = onSelectObject;
+    }, [onSelectObject]);
+
+  //Create the visualiser once, when the canvas appears
     useEffect(() => {
         const canvas = canvasRef.current;
-        if(!canvas) return;
+        if (!canvas) return;
 
-        const visualiser = createVisualiser(canvas);
+        const visualiser = createVisualiser(canvas, {
+        onSelect: (id) => onSelectRef.current(id),
+        });
         visualiserRef.current = visualiser;
 
         return () => {
-            visualiser.dispose();
-            visualiserRef.current = null;
+        visualiser.dispose();
+        visualiserRef.current = null;
         };
     }, []);
 
-    //when settings change, pass on
+    //Pass settings and selection on whenever they change
     useEffect(() => {
         visualiserRef.current?.applySettings(settings);
     }, [settings]);
+
+    useEffect(() => {
+        visualiserRef.current?.select(selectedId);
+    }, [selectedId]);
 
     return <canvas ref={canvasRef} className="block h-full w-full" />;
 }

@@ -1,4 +1,4 @@
-import { Engine, Scene } from "@babylonjs/core";
+import { Engine, Scene, PointerEventTypes  } from "@babylonjs/core";
 import { createLighting } from "./lighting";
 import { createAudioFeatures } from "../audio/audioFeatures";
 import type { Effect } from "./effect";
@@ -9,22 +9,33 @@ import type { VisualSettings } from "./settings";
 import { createCamera } from "./camera";
 import { createSpectrum } from "./spectrum";
 
+type VisualiserOptions = {
+    onSelect: (id: string | null) => void;
+};
 
-export function createVisualiser(canvas: HTMLCanvasElement) {
+
+export function createVisualiser(canvas: HTMLCanvasElement, { onSelect }: VisualiserOptions) {
     const engine = new Engine(canvas, true);
     const scene = new Scene(engine);
 
     const audioFeatures = createAudioFeatures();
+    const objects = createObjects(scene);
 
     //every visual effect in the scene. Adding a new one = addig to this list
     const effects: Effect[] = [
         createCamera(scene, canvas),
         createBackground(scene),
         createLighting(scene),
-        createObjects(scene),
+        objects,
         createSpectrum(scene),
         createSmoke(scene),
     ];
+
+      scene.onPointerObservable.add((info) => {
+            if (info.type !== PointerEventTypes.POINTERTAP) return;
+            const picked = info.pickInfo?.pickedMesh;
+            onSelect(picked?.metadata?.objectId ?? null);
+        });
 
     engine.runRenderLoop(() => {
         const features = audioFeatures.update();
@@ -38,6 +49,10 @@ export function createVisualiser(canvas: HTMLCanvasElement) {
     return{
         applySettings(settings: VisualSettings) {
             for (const effect of effects) effect.apply(settings);
+        },
+
+        select(id: string | null) {
+            objects.select(id);
         },
 
         dispose() {

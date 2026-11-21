@@ -14,7 +14,7 @@ import {
   type UpdateSettings,
   type VisualSettings,
 } from "./scene/settings";
-
+import Outliner from "./components/Outliner";
 
 export default function App() {
   const [settings, setSettings] = useState<VisualSettings>(defaultSettings);
@@ -94,9 +94,28 @@ export default function App() {
     setListening(false);
   }
 
+//Delete key removes the selected object (but not while typing in a box)
+useEffect(() => {
+  function onKeyDown(e: KeyboardEvent) {
+    if (e.key !== "Delete" || !selectedId) return;
+    const tag = (e.target as HTMLElement).tagName;
+    if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
+
+    const id = selectedId;
+    setSettings((previous) => ({
+      ...previous,
+      objects: previous.objects.filter((object) => object.id !== id),
+    }));
+    setSelectedId(null);
+  }
+
+  window.addEventListener("keydown", onKeyDown);
+  return () => window.removeEventListener("keydown", onKeyDown);
+}, [selectedId]);
+
   return (
       <main className={`relative h-screen w-screen overflow-hidden bg-black ${performing ? "cursor-none" : ""}`}>
-        <BabylonCanvas settings={settings} />
+        <BabylonCanvas settings={settings} selectedId={performing ? null : selectedId} onSelectObject={setSelectedId}/>
 
         {!performing && (
           <>
@@ -120,6 +139,15 @@ export default function App() {
                 onObjectChange={updateObject}
                 onSelectObject={setSelectedId}
                 onDeleteObject={deleteObject}
+              />
+
+              <Outliner
+                objects={settings.objects}
+                selectedId={selectedId}
+                onSelect={setSelectedId}
+                onRename={(id, name) => updateObject(id, { name })}
+                onSetVisible={(id, visible) => updateObject(id, { visible })}
+                onDelete={deleteObject}
               />
 
               <AddBar onAdd={addObject} />

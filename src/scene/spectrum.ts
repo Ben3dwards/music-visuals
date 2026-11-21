@@ -21,6 +21,7 @@ function createGlowMaterial(name: string, scene: Scene): StandardMaterial {
 function createBarSet(name: string, count: number, width: number, material: StandardMaterial, scene: Scene) {
     const mesh = MeshBuilder.CreateBox(name, { width, depth: width, height: 1}, scene);
     mesh.material = material;
+    mesh.isPickable = false;
     mesh.alwaysSelectAsActiveMesh = true;
 
     const matrices = new Float32Array(count * 16) //one 4x4 matrix

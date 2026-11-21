@@ -18,6 +18,7 @@ export type SceneObject = {
     modelUrl: string; // which model to show when type is "model"
     rotation: Axes<number>;
     position: Axes<number>;
+    visible: boolean; 
 };
 
 //Spectrum visualisor
@@ -151,6 +152,7 @@ export function createObject(type: ShapeType = "cube", overrides: Partial<SceneO
             },
             glow: { source: "midBass", amount: 1 },
         },
+        visible: true,
         ...overrides,
     };
 }
