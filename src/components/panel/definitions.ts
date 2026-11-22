@@ -75,4 +75,6 @@ export const WORMHOLE_CONTROLS: ControlDef<WormholeSettings>[] = [
     { type: "toggle", label: "Seed picks colours", key: "useSeedColours" },
     { type: "colour", label: "Colour A", key: "colourA", disabled: seedColours },
     { type: "colour", label: "Colour B", key: "colourB", disabled: seedColours },
+    { type: "slider", label: "Warp", key: "warp", min: 0, max: 1.5, step: 0.05 },
+    { type: "reaction", label: "Warp boost", key: "warpReaction" },
 ];

@@ -1,4 +1,4 @@
-import { Scene, MeshBuilder, ShaderMaterial, Color3, Mesh } from "@babylonjs/core";
+import { Scene, MeshBuilder, ShaderMaterial, Color3, Mesh, PostProcess, Texture, Effect as BabylonEffect, type Camera } from "@babylonjs/core";
 import type { AudioFeatures } from "../audio/audioFeatures";
 import type { Effect } from "./effect";
 import { createRandom } from "./random";
@@ -89,6 +89,39 @@ const FRAGMENT = `
     }
 `;
 
+const MAX_WARP_BOOST = 1.5;
+
+//Post process
+const WARP_FRAGMENT = `
+    precision highp float;
+
+    varying vec2 vUV;                 // where this pixel is on screen (0 to 1)
+    uniform sampler2D textureSampler; // the finished frame
+    uniform float amount;             // how strong the warp is right now
+    uniform float time;
+    uniform float aspect;             // screen width / height, so the twirl is round, not oval
+
+    void main() {
+    vec2 centre = vec2(0.5);
+    vec2 offset = (vUV - centre) * vec2(aspect, 1.0);
+    float dist = length(offset);
+
+    // Twirl: turn more near the middle, fading out towards the edges, with a slow sway
+    float angle = amount * 3.0 * (1.0 - smoothstep(0.0, 0.8, dist));
+    angle += sin(time * 0.7) * amount * 0.3;
+    float s = sin(angle);
+    float c = cos(angle);
+    offset = mat2(c, -s, s, c) * offset;
+
+    // Ripple: rings pulsing outward from the centre
+    offset *= 1.0 + sin(dist * 30.0 - time * 4.0) * 0.015 * amount;
+
+    // Read the frame from the warped spot instead of this pixel's own spot
+    gl_FragColor = texture2D(textureSampler, centre + offset / vec2(aspect, 1.0));
+}
+`;
+
+BabylonEffect.ShadersStore["wormholeWarpFragmentShader"] = WARP_FRAGMENT;
 
 //The effect
 export function createWormhole(scene: Scene): Effect {
@@ -120,6 +153,35 @@ export function createWormhole(scene: Scene): Effect {
         },
     );
 
+    const warpPass = new PostProcess(
+        "wormholeWarp",
+        "wormholeWarp",
+        ["amount", "time", "aspect"],
+        null,
+        1.0,
+        null, 
+        Texture.BILINEAR_SAMPLINGMODE,
+        scene.getEngine(),
+    );
+
+    let warp = 0;
+    let warpReaction: Reaction = { source: "none", amount: 0 };
+    let warpAmount = 0;
+    let warpCamera: Camera | null = null;
+
+    warpPass.onApply = (effect) => {
+        effect.setFloat("amount", warpAmount);
+        effect.setFloat("time", time);
+        effect.setFloat("aspect", warpPass.aspectRatio);
+    };
+
+    function attachWarp(camera: Camera | null) {
+        if (camera === warpCamera) return;
+        warpCamera?.detachPostProcess(warpPass);
+        camera?.attachPostProcess(warpPass);
+        warpCamera = camera;
+    }
+
     material.backFaceCulling = false; // inside tube looking at walls
     tube.material = material;
 
@@ -148,6 +210,9 @@ export function createWormhole(scene: Scene): Effect {
         apply({ mode, wormhole }: VisualSettings) {
             enabled = mode === "wormhole";
             tube.setEnabled(enabled);
+            if (!enabled) attachWarp(null);
+            warp = wormhole.warp;
+            warpReaction = wormhole.warpReaction;
 
             applySeed(wormhole.seed);
 
@@ -176,11 +241,16 @@ export function createWormhole(scene: Scene): Effect {
             material.setFloat("travel", travel);
             material.setFloat("bass", features.bands.subBass);
 
+
+            warpAmount = warp + readReaction(warpReaction, features) * MAX_WARP_BOOST;
+            attachWarp(warpAmount > 0.001 ? scene.activeCamera : null);
         },
 
         dispose(){
+            attachWarp(null);
+            warpPass.dispose();
             material.dispose();
-            tube.dispose;
+            tube.dispose();
         },
     };
 }
