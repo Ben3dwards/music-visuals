@@ -384,7 +384,7 @@ export const defaultSettings: VisualSettings = {
         useSeedColours: false,
         colourA: "#ff0080",
         colourB: "#00e5ff",
-        warp: 0.3,
+        warp: 0.2,
         warpReaction: { source: "kickPulse", amount: 0.5 },
     },
 };

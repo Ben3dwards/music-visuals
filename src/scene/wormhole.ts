@@ -89,7 +89,8 @@ const FRAGMENT = `
     }
 `;
 
-const MAX_WARP_BOOST = 1.5;
+const MAX_WARP_BOOST = 0.6;
+const WARP_EASING = 0.1;
 
 //Post process
 const WARP_FRAGMENT = `
@@ -107,7 +108,7 @@ const WARP_FRAGMENT = `
     float dist = length(offset);
 
     // Twirl: turn more near the middle, fading out towards the edges, with a slow sway
-    float angle = amount * 3.0 * (1.0 - smoothstep(0.0, 0.8, dist));
+    float angle = amount * 1.2 * (1.0 - smoothstep(0.0, 0.8, dist));
     angle += sin(time * 0.7) * amount * 0.3;
     float s = sin(angle);
     float c = cos(angle);
@@ -242,7 +243,8 @@ export function createWormhole(scene: Scene): Effect {
             material.setFloat("bass", features.bands.subBass);
 
 
-            warpAmount = warp + readReaction(warpReaction, features) * MAX_WARP_BOOST;
+            const warpTarget = warp + readReaction(warpReaction, features) * MAX_WARP_BOOST;
+            warpAmount += (warpTarget - warpAmount) * WARP_EASING;
             attachWarp(warpAmount > 0.001 ? scene.activeCamera : null);
         },
 
