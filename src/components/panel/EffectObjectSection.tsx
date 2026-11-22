@@ -17,14 +17,27 @@ export default function EffectObjectSection({ settings, selectedId, onObjectChan
         if (object.kind === "spectrum") onObjectChange(id, { spectrum: { ...DEFAULT_SPECTRUM } });
         if (object.kind === "smoke") onObjectChange(id, { smoke: { ...DEFAULT_SMOKE } });
         if (object.kind === "light") onObjectChange(id, { light: { ...DEFAULT_LIGHT, flash: { ...DEFAULT_LIGHT.flash } } });
-        if (object.kind === "camera") onObjectChange(id, { camera: { ...DEFAULT_CAMERA_ITEM, punch: { ...DEFAULT_CAMERA_ITEM.punch } } });
-        
-    }
+        if (object.kind === "camera") {
+            onObjectChange(id, {
+                camera: {
+                    ...DEFAULT_CAMERA_ITEM,
+                    punch: { ...DEFAULT_CAMERA_ITEM.punch },
+                    orbitReaction: { ...DEFAULT_CAMERA_ITEM.orbitReaction },
+                },
+            });      
+        }
+    };
 
     const targetOptions: Option<string>[] = [
         { value: "", label: "Nothing (free)" },
         ...settings.objects.filter((o) => o.kind === "shape").map((o) => ({ value: o.id, label: o.name })),
         ];
+
+    //Objects a camera can keep in shot
+    const lookAtOptions: Option<string>[] = [
+        { value: "", label: "Nothing (aim it yourself)" },
+        ...settings.objects.filter((o) => o.kind === "shape").map((o) => ({ value: o.id, label: o.name })),
+    ];
 
 
     const setAttachment = (targetId: string) => {
@@ -82,11 +95,19 @@ export default function EffectObjectSection({ settings, selectedId, onObjectChan
             )}
 
             {object.kind === "camera" && (
-                <ControlList
-                    value={object.camera}
-                    controls={CAMERA_ITEM_CONTROLS}
-                    onChange={(changes) => onObjectChange(id, { camera: { ...object.camera, ...changes } })}
-                />
+                <>
+                    <Select
+                        label="Look at"
+                        options={lookAtOptions}
+                        value={object.camera.lookAt ?? ""}
+                        onChange={(target) => onObjectChange(id, { camera: { ...object.camera, lookAt: target || null } })}
+                    />
+                    <ControlList
+                        value={object.camera}
+                        controls={CAMERA_ITEM_CONTROLS}
+                        onChange={(changes) => onObjectChange(id, { camera: { ...object.camera, ...changes } })}
+                    />
+                </>
             )}
         </Section>
     );

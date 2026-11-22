@@ -27,7 +27,9 @@ export const CAMERA_CONTROLS: ControlDef<CameraSettings>[] = [
 
 export const CAMERA_ITEM_CONTROLS: ControlDef<CameraItemSettings>[] = [
     { type: "slider", label: "Field of view", key: "fov", min: 20, max: 100, step: 1 },
-    { type: "toggle", label: "Free look (mouse, while live)", key: "freeLook" },
+    { type: "slider", label: "Orbit", key: "orbit", min: -2, max: 2, step: 0.05 },
+    { type: "reaction", label: "Orbit boost", key: "orbitReaction" },
+    { type: "toggle", label: "Free look (fixed shots only)", key: "freeLook" },
     { type: "reaction", label: "Punch", key: "punch" },
 ];
 

@@ -9,7 +9,13 @@ import type { SceneObject, VisualSettings } from "./settings";
 import { createLight } from "./light";
 import { createCameraItem } from "./cameraItem";
 
-function createInstance(scene: Scene, canvas: HTMLCanvasElement, object: SceneObject): EntityInstance {
+function createInstance(
+    scene: Scene,
+    canvas: HTMLCanvasElement,
+    object: SceneObject,
+    getNode: (id: string) => TransformNode | null,
+): EntityInstance {
+
     switch (object.kind) {
         case "shape":
             return createSceneObject(scene, object.id);
@@ -20,7 +26,7 @@ function createInstance(scene: Scene, canvas: HTMLCanvasElement, object: SceneOb
         case "light":
             return createLight(scene, object.id);
         case "camera":
-            return createCameraItem(scene, object.id, canvas);
+            return createCameraItem(scene, object.id, canvas, getNode);
     }
 }
 
@@ -36,6 +42,7 @@ export function createObjects(scene: Scene, canvas: HTMLCanvasElement): Effect &
     const instances = new Map<string, EntityInstance>();
     let selectedId: string | null = null;
     let editing = true;
+    const findNode = (id: string) => instances.get(id)?.node ?? null;
 
     return {
         apply({ objects }: VisualSettings) {
@@ -44,7 +51,7 @@ export function createObjects(scene: Scene, canvas: HTMLCanvasElement): Effect &
              for (const object of objects) {
                 let instance = instances.get(object.id);
                     if (!instance) {
-                        instance = createInstance(scene, canvas, object);
+                        instance = createInstance(scene, canvas, object, findNode);
                         instance.setSelected(object.id === selectedId);
                         instance.setEditing?.(editing);
                         instances.set(object.id, instance);

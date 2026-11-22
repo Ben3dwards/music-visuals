@@ -83,6 +83,9 @@ export type CameraItemSettings = {
     fov: number;
     freeLook: boolean;
     punch: Reaction;
+    lookAt: string | null;  
+    orbit: number;    
+    orbitReaction: Reaction;
 };
 
 export type CameraObject = EntityBase & {
@@ -202,6 +205,9 @@ export const DEFAULT_CAMERA_ITEM: CameraItemSettings = {
     fov: 50,
     freeLook: false,
     punch: { source: "none", amount: 0 },
+    lookAt: null,
+    orbit: 0,
+    orbitReaction: { source: "none", amount: 0 },
 };
 
 export function createCameraObject(overrides: Partial<CameraObject> = {}): CameraObject {
@@ -209,7 +215,7 @@ export function createCameraObject(overrides: Partial<CameraObject> = {}): Camer
         ...baseEntity("camera"),
         kind: "camera",
         position: { x: 0, y: 0.5, z: -6 },
-        camera: { ...DEFAULT_CAMERA_ITEM, punch: { ...DEFAULT_CAMERA_ITEM.punch } },
+        camera: { ...DEFAULT_CAMERA_ITEM, punch: { ...DEFAULT_CAMERA_ITEM.punch }, orbitReaction: { ...DEFAULT_CAMERA_ITEM.orbitReaction },},
         ...overrides,
     };
 }
@@ -305,9 +311,14 @@ export function withoutObject(objects: SceneObject[], id: string): SceneObject[]
 }
 
 export function removeObject(settings: VisualSettings, id: string): VisualSettings {
+    const objects = withoutObject(settings.objects, id).map((object) =>
+        object.kind === "camera" && object.camera.lookAt === id
+        ? { ...object, camera: { ...object.camera, lookAt: null } }
+        : object,
+    );
     return {
         ...settings,
-        objects: withoutObject(settings.objects, id),
+        objects,
         camera: {
             ...settings.camera,
             liveCameraId: settings.camera.liveCameraId === id ? null : settings.camera.liveCameraId,
