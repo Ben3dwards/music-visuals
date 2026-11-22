@@ -72,10 +72,15 @@ export type SmokeObject = EntityBase & {
     smoke: SmokeSettings;
 };
 
+export type LightObject = EntityBase & {
+    kind: "light";
+    light: LightSettings;
+}
 
-export type SceneObject = ShapeObject | SpectrumObject | SmokeObject;
 
-export type AddType = ShapeType | "spectrum" | "smoke";
+export type SceneObject = ShapeObject | SpectrumObject | SmokeObject | LightObject;
+
+export type AddType = ShapeType | "spectrum" | "smoke" | "light";
 
 export type ObjectTransform = Pick<EntityBase, "position" | "rotation" | "scale">;
 
@@ -101,14 +106,22 @@ export type BackgroundSettings = {
     spin: number;
 };
 
-export type LightType = "ambient" | "point" | "directional";
-export type LightingSettings = {
-    type: LightType;
+//Settigns for one light
+export type LightKind = "point" | "directional" | "spot";
+export type LightSettings = {
+    type: LightKind;
+    colour: string;
     intensity: number;
+    flash: Reaction;
+    showMarker: boolean;
+};
+
+//Scene wide lighting
+export type LightingSettings = {
+    ambient: number;
     glow: number;
     glowSpread: number;
-    flash: Reaction;
-};
+}
 
 
 export type VisualSettings = {
@@ -152,12 +165,33 @@ export const DEFAULT_SMOKE: SmokeSettings = {
     wind: 1,
 };
 
+export const DEFAULT_LIGHT: LightSettings = {
+    type: "point",
+    colour: "#ffffff",
+    intensity: 1,
+    flash: { source: "none", amount: 0 },
+    showMarker: true,
+};
+
+//creates new light above and in front of scene
+export function createLightObject(overrides: Partial<LightObject> = {}): LightObject {
+    return {
+        ...baseEntity("light"),
+        kind: "light",
+        position: { x: 0, y: 3, z: -3 },
+        rotation: { x: 30, y: 0, z: 0 },
+        light: { ...DEFAULT_LIGHT, flash: { ...DEFAULT_LIGHT.flash } },
+        ...overrides,
+    };
+}
+
 const TYPE_NAMES: Record<AddType, string> = {
     cube: "Cube",
     sphere: "Sphere",
     model: "Model",
     spectrum: "Spectrum",
     smoke: "Smoke",
+    light: "Light",
 };
 
 
@@ -216,6 +250,7 @@ export function createSmokeObject(overrides: Partial<SmokeObject> = {}): SmokeOb
 export function createByType(type: AddType, overrides: Partial<EntityBase> = {}): SceneObject {
     if (type === "spectrum") return createSpectrumObject(overrides);
     if (type === "smoke") return createSmokeObject(overrides);
+    if (type === "light") return createLightObject(overrides);
     return createObject(type, overrides);
 }
 
@@ -244,11 +279,9 @@ export const defaultSettings: VisualSettings = {
     objects: [startingCube, createSpectrumObject({ attachedTo: startingCube.id }),createSmokeObject({ attachedTo: startingCube.id }),],
 
     lighting: {
-    type: "ambient",
-    intensity: 1,
-    glow: 0.6,
-    glowSpread: 32,
-    flash: { source: "none", amount: 0 },
+        ambient: 1,
+        glow: 0.6,
+        glowSpread: 32,
     },
 
     camera: {

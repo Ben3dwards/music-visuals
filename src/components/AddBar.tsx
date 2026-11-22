@@ -12,8 +12,9 @@ const ITEMS: AddItem[] = [
     { label: "Model", type: "model" },
     { label: "Spectrum", type: "spectrum" },
     { label: "Smoke", type: "smoke" },
-    { label: "Light", type: null },
+    { label: "Light", type: "light" },
     { label: "Camera", type: null },
+
 ];
 
 type Props = {

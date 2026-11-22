@@ -14,6 +14,7 @@ import {
   spawnPosition,
   withoutObject,
   type AddType,
+  type EntityBase,
   type SceneObject,
   type UpdateObject,
   type UpdateSettings,
@@ -45,10 +46,11 @@ export default function App() {
   };
 
   function addObject(type: AddType) {
-    const object = createByType(type, {
-      name: nextObjectName(type, settings.objects),
-      position: spawnPosition(settings.objects.length),
-    });
+    // Lights keep their own default spot (above and in front); everything else spawns side by side
+    const overrides: Partial<EntityBase> = { name: nextObjectName(type, settings.objects) };
+    if (type !== "light") overrides.position = spawnPosition(settings.objects.length);
+
+    const object = createByType(type, overrides);
     setSettings((previous) => ({ ...previous, objects: [...previous.objects, object] }));
     setSelectedId(object.id); // select it, so the panel shows it straight away
   }
@@ -58,7 +60,7 @@ export default function App() {
     setSelectedId((current) => (current === id ? null : current));
   }
 
-  //Leave performance mode when fullscreen ends or Esc is pressed
+  // Leave performance mode when fullscreen ends or Esc is pressed
   useEffect(() => {
     function onFullScreenChange() {
       if (!document.fullscreenElement) setPerforming(false);
@@ -76,7 +78,7 @@ export default function App() {
     };
   }, []);
 
-  //Delete key removes the selected item (but not while typing in a box)
+  // Delete key removes the selected item (but not while typing in a box)
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
       if (e.key !== "Delete" || !selectedId) return;
@@ -92,7 +94,7 @@ export default function App() {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [selectedId]);
 
-  //W / E / R switch between move, rotate and scale (but not while typing)
+  // W / E / R switch between move, rotate and scale (but not while typing)
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
       const tag = (e.target as HTMLElement).tagName;
@@ -136,6 +138,7 @@ export default function App() {
         settings={settings}
         selectedId={performing ? null : selectedId}
         gizmoMode={gizmoMode}
+        editing={!performing}
         onSelectObject={setSelectedId}
         onTransformEnd={updateObject}
       />

@@ -1,12 +1,18 @@
-import type { CameraSettings, LightingSettings, SmokeSettings, SpectrumSettings } from "../../scene/settings";
+import type { CameraSettings, LightingSettings, LightSettings, SmokeSettings, SpectrumSettings } from "../../scene/settings";
 import type { ControlDef } from "./controlTypes";
 import { LIGHT_OPTIONS, VIEW_OPTIONS, WIND_OPTIONS } from "./shared";
 
 export const LIGHTING_CONTROLS: ControlDef<LightingSettings>[] = [
-    { type: "buttons", label: "Light", key: "type", options: LIGHT_OPTIONS },
-    { type: "slider", label: "Intensity", key: "intensity", min: 0, max: 2, step: 0.05 },
+    { type: "slider", label: "Ambient light", key: "ambient", min: 0, max: 2, step: 0.05 },
     { type: "slider", label: "Glow", key: "glow", min: 0, max: 2, step: 0.05 },
     { type: "slider", label: "Glow spread", key: "glowSpread", min: 8, max: 128, step: 1 },
+];
+
+export const LIGHT_CONTROLS: ControlDef<LightSettings>[] = [
+    { type: "buttons", label: "Type", key: "type", options: LIGHT_OPTIONS },
+    { type: "colour", label: "Colour", key: "colour" },
+    { type: "slider", label: "Brightness", key: "intensity", min: 0, max: 3, step: 0.05 },
+    { type: "toggle", label: "Show marker", key: "showMarker" },
     { type: "reaction", label: "Flash", key: "flash" },
 ];
 

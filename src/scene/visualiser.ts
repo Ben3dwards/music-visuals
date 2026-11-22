@@ -65,6 +65,10 @@ export function createVisualiser(canvas: HTMLCanvasElement, { onSelect, onTransf
             gizmos.setMode(mode);
         },
 
+        setEditing(editing: boolean) {
+            objects.setEditing(editing);
+        },
+
 
         dispose() {
             window.removeEventListener("resize", onResize);

@@ -6,6 +6,7 @@ import { createSceneObject } from "./sceneObject";
 import { createSmoke } from "./smoke";
 import { createSpectrum } from "./spectrum";
 import type { SceneObject, VisualSettings } from "./settings";
+import { createLight } from "./light";
 
 function createInstance(scene: Scene, object: SceneObject): EntityInstance {
     switch (object.kind) {
@@ -15,14 +16,17 @@ function createInstance(scene: Scene, object: SceneObject): EntityInstance {
             return createSpectrum(scene, object.id);
         case "smoke":
             return createSmoke(scene, object.id);
+        case "light":
+            return createLight(scene, object.id);
     }
 }
 
 //Keeps scene items in sync with the settings
 
-export function createObjects(scene: Scene): Effect & {select(id: string | null): void; getNode(id: string): TransformNode | null;} {
+export function createObjects(scene: Scene): Effect & {select(id: string | null): void; getNode(id: string): TransformNode | null; setEditing(editing: boolean): void;} {
     const instances = new Map<string, EntityInstance>();
     let selectedId: string | null = null;
+    let editing = true;
 
     return {
         apply({ objects }: VisualSettings) {
@@ -33,6 +37,7 @@ export function createObjects(scene: Scene): Effect & {select(id: string | null)
                     if (!instance) {
                         instance = createInstance(scene, object);
                         instance.setSelected(object.id === selectedId);
+                        instance.setEditing?.(editing);
                         instances.set(object.id, instance);
                     }
                  instance.apply(object);
@@ -64,6 +69,12 @@ export function createObjects(scene: Scene): Effect & {select(id: string | null)
             instance.setSelected(instanceId === id);
             }
         },
+
+        setEditing(value: boolean) {
+            editing = value;
+            for (const instance of instances.values()) instance.setEditing?.(value);
+        },
+
 
         getNode(id: string) {
             return instances.get(id)?.node ?? null;

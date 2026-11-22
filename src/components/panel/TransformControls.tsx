@@ -32,7 +32,18 @@ export default function TransformControls({ entity, onChange }: Props) {
                     min={-10}
                     max={10}
                     step={0.1}
-                     onChange={(value) => onChange({ position: { ...entity.position, [axis]: value } })}
+                    onChange={(value) => onChange({ position: { ...entity.position, [axis]: value } })}
+                />
+            ))}
+            {AXES.map((axis) => (
+                <Slider
+                    key={`rotate-${axis}`}
+                    label={`Rotate ${axis.toUpperCase()}`}
+                    value={entity.rotation[axis]}
+                    min={-180}
+                    max={180}
+                    step={15}
+                    onChange={(degrees) => onChange({ rotation: { ...entity.rotation, [axis]: degrees } })}
                 />
             ))}
         </>

@@ -91,4 +91,4 @@ export default function Outliner({ objects, selectedId, onSelect, onRename, onSe
       })}
     </aside>
   );
-}
+};

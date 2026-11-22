@@ -1,10 +1,10 @@
-import { DEFAULT_SMOKE, DEFAULT_SPECTRUM } from "../../scene/settings";
+import { DEFAULT_LIGHT, DEFAULT_SMOKE, DEFAULT_SPECTRUM } from "../../scene/settings";
+import { Select, type Option } from "../controls";
 import ControlList from "./ControlList";
-import { SMOKE_CONTROLS, SPECTRUM_CONTROLS } from "./definitions";
+import { LIGHT_CONTROLS, SMOKE_CONTROLS, SPECTRUM_CONTROLS } from "./definitions";
 import Section from "./Section";
 import TransformControls from "./TransformControls";
 import type { PanelSectionProps } from "./shared";
-import { Select, type Option } from "../controls";
 
 //Settings for a selected spectrum or smoke item
 export default function EffectObjectSection({ settings, selectedId, onObjectChange, onDeleteObject }: PanelSectionProps) {
@@ -13,29 +13,29 @@ export default function EffectObjectSection({ settings, selectedId, onObjectChan
 
     const { id } = object;
 
-    function reset() {
-        onObjectChange(id, object!.kind === "spectrum" ? { spectrum: { ...DEFAULT_SPECTRUM } } : { smoke: { ...DEFAULT_SMOKE } });
+    const reset = () => {
+        if (object.kind === "spectrum") onObjectChange(id, { spectrum: { ...DEFAULT_SPECTRUM } });
+        if (object.kind === "smoke") onObjectChange(id, { smoke: { ...DEFAULT_SMOKE } });
+        if (object.kind === "light") onObjectChange(id, { light: { ...DEFAULT_LIGHT, flash: { ...DEFAULT_LIGHT.flash } } });
         
     }
 
     const targetOptions: Option<string>[] = [
         { value: "", label: "Nothing (free)" },
-        ...settings.objects
-            .filter((o) => o.kind === "shape")
-            .map((o) => ({ value: o.id, label: o.name })),
+        ...settings.objects.filter((o) => o.kind === "shape").map((o) => ({ value: o.id, label: o.name })),
         ];
 
 
     const setAttachment = (targetId: string) => {
         if (targetId) {
-            //Attatch to objects centre
+            // Attach: snap to the object's centre
             onObjectChange(id, { attachedTo: targetId, position: { x: 0, y: 0, z: 0 } });
         }else{
-            //Detatch and stay where it is
+            // Detach: stay where the object is, rather than jumping to the middle of the scene
             const target = settings.objects.find((o) => o.id === object.attachedTo);
             onObjectChange(id, { attachedTo: null, position: target ? { ...target.position } : object.position });
         }
-    }
+    };
 
     return (
         <Section title={object.name} defaultOpen onReset={reset}>
@@ -69,6 +69,14 @@ export default function EffectObjectSection({ settings, selectedId, onObjectChan
                 value={object.smoke}
                 controls={SMOKE_CONTROLS}
                 onChange={(changes) => onObjectChange(id, { smoke: { ...object.smoke, ...changes } })}
+                />
+            )}
+
+            {object.kind === "light" && (
+                <ControlList
+                    value={object.light}
+                    controls={LIGHT_CONTROLS}
+                    onChange={(changes) => onObjectChange(id, { light: { ...object.light, ...changes } })}
                 />
             )}
         </Section>

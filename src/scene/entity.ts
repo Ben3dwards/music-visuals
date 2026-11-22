@@ -8,6 +8,7 @@ export type EntityInstance = {
     apply(object: SceneObject): void;            
     update(features: AudioFeatures): void;       
     setSelected(selected: boolean): void;        
+    setEditing?(editing: boolean): void; 
     dispose(): void;
 };
 

@@ -2,7 +2,7 @@ import type { Option } from "../controls";
 import type {
     BackgroundMode,
     CameraView,
-    LightType,
+    LightKind,
     ShapeFinish,
     ShapeType,
     UpdateObject,
@@ -37,10 +37,10 @@ export const FINISH_OPTIONS: Option<ShapeFinish>[] = [
     { value: "lit", label: "Lit" },
 ];
 
-export const LIGHT_OPTIONS: Option<LightType>[] = [
-    { value: "ambient", label: "Ambient" },
+export const LIGHT_OPTIONS: Option<LightKind>[] = [
     { value: "point", label: "Point" },
     { value: "directional", label: "Directional" },
+    { value: "spot", label: "Spot" },
 ];
 
 export const VIEW_OPTIONS: Option<CameraView>[] = [
