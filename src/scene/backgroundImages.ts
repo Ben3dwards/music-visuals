@@ -1,3 +1,4 @@
 export const BACKGROUND_IMAGES =[
-    { label: "Milky Way", url: "/backgrounds/BGstars.jpg"}
+    { label: "Milky Way", url: "/backgrounds/MilyWay.jpg"},
+    { label: "Stars", url: "/backgrounds/StarySky.jpg"}
 ];
