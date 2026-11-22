@@ -15,7 +15,7 @@ type Props = {
 
 export default function TopBar({ mode, onModeChange, listening, previewing, onStartAudio, onStopAudio, onTogglePreview, onResetView, onPerform }: Props) {
     return(
-        <header className="absolute inset-x-0 top-0 flex h-12 items-center justify-between gap-4 border-b border-white/10 bg-black/60 px-4 text-sm text-white backdrop-blur">
+        <header className="absolute inset-x-0 top-0 grid h-12 grid-cols-[1fr_auto_1fr] items-center gap-4 border-b border-white/10 bg-black/60 px-4 text-sm text-white backdrop-blur">
             <span className="font-semibold tracking-wide">Music Visuals</span>
             
 
