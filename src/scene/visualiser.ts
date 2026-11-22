@@ -7,6 +7,7 @@ import { createObjects } from "./objects";
 import type { VisualSettings, ObjectTransform } from "./settings";
 import { createCamera } from "./camera";
 import { createGizmos, type GizmoMode } from "./gizmos";
+import { createWormhole } from "./wormhole";
 
 type VisualiserOptions = {
     onSelect: (id: string | null) => void;
@@ -28,6 +29,7 @@ export function createVisualiser(canvas: HTMLCanvasElement, { onSelect, onTransf
         createCamera(scene, canvas),
         createBackground(scene),
         createLighting(scene),
+        createWormhole(scene),
         objects,
     ];
 

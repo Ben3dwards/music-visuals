@@ -141,19 +141,37 @@ export type LightingSettings = {
 
 
 export type VisualSettings = {
+    mode: SceneMode;
     objects: SceneObject[];
     lighting: LightingSettings;
     camera: CameraSettings;
     background: BackgroundSettings;
+    wormhole: WormholeSettings;
 };
 
-export type SettingsGroup = Exclude<keyof VisualSettings, "objects">;
+export type SettingsGroup = Exclude<keyof VisualSettings, "objects" | "mode">;
 
 export type UpdateSettings = <K extends SettingsGroup>(group: K, changes: Partial<VisualSettings[K]>) => void;
 
 export type UpdateObject = (id: string, changes: Partial<SceneObject>) => void;
 
 
+//Worm holes - very very heavy AI coded as i dont really understand graphics
+export type SceneMode = "scene" | "wormhole";
+export type WormholeSettings = {
+seed: string;             // the tunnel's character: same seed, same tunnel
+    speed: number;            // how fast the walls stream towards you
+    speedReaction: Reaction;  // the music pushes the speed up
+    twist: number;            // turns the pattern into spirals (negative = the other way)
+    density: number;          // how tightly the pattern repeats
+    radius: number;           // tunnel size, 1 = default
+    brightness: number;
+    useSeedColours: boolean;  // let the seed pick the colours instead of A and B
+    colourA: string;
+    colourB: string;
+    warp: number;             //how much the whole picture twirls
+    warpReaction: Reaction;   //the music drives the twirl
+};
 
 //Defaults and factories
 
@@ -328,6 +346,7 @@ export function removeObject(settings: VisualSettings, id: string): VisualSettin
 
 const startingCube = createObject("cube");
 export const defaultSettings: VisualSettings = {
+    mode: "scene",
 
     objects: [startingCube, createSpectrumObject({ attachedTo: startingCube.id }),createSmokeObject({ attachedTo: startingCube.id }),],
 
@@ -352,5 +371,20 @@ export const defaultSettings: VisualSettings = {
     imageUrl: BACKGROUND_IMAGES[0].url,
     brightness: 1,
     spin: 0,
+    },
+
+    wormhole: {
+        seed: "Mr Happy",
+        speed: 1,
+        speedReaction: { source: "subBass", amount: 0.6 },
+        twist: 1,
+        density: 1,
+        radius: 1,
+        brightness: 0.8,
+        useSeedColours: false,
+        colourA: "#ff0080",
+        colourB: "#00e5ff",
+        warp: 0.3,
+        warpReaction: { source: "kickPulse", amount: 0.5 },
     },
 };

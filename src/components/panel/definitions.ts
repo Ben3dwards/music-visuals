@@ -1,4 +1,4 @@
-import type { CameraSettings, CameraItemSettings, LightingSettings, LightSettings, SmokeSettings, SpectrumSettings } from "../../scene/settings";
+import type { WormholeSettings, CameraSettings, CameraItemSettings, LightingSettings, LightSettings, SmokeSettings, SpectrumSettings } from "../../scene/settings";
 import type { ControlDef } from "./controlTypes";
 import { LIGHT_OPTIONS, VIEW_OPTIONS, WIND_OPTIONS } from "./shared";
 
@@ -60,4 +60,19 @@ export const SMOKE_CONTROLS: ControlDef<SmokeSettings>[] = [
     { type: "colour", label: "Colour B", key: "colourB", disabled: smokeOff },
     { type: "buttons", label: "Wind", key: "windMode", options: WIND_OPTIONS },
     { type: "slider", label: "Wind strength", key: "wind", min: 0, max: 3, step: 0.05, disabled: smokeOff },
+];
+
+
+const seedColours = (wormhole: WormholeSettings) => wormhole.useSeedColours;
+
+export const WORMHOLE_CONTROLS: ControlDef<WormholeSettings>[] = [
+    { type: "slider", label: "Speed", key: "speed", min: 0, max: 3, step: 0.05 },
+    { type: "reaction", label: "Speed boost", key: "speedReaction" },
+    { type: "slider", label: "Twist", key: "twist", min: -3, max: 3, step: 0.05 },
+    { type: "slider", label: "Pattern density", key: "density", min: 0.5, max: 3, step: 0.05 },
+    { type: "slider", label: "Size", key: "radius", min: 0.5, max: 2, step: 0.05 },
+    { type: "slider", label: "Brightness", key: "brightness", min: 0, max: 1.5, step: 0.05 },
+    { type: "toggle", label: "Seed picks colours", key: "useSeedColours" },
+    { type: "colour", label: "Colour A", key: "colourA", disabled: seedColours },
+    { type: "colour", label: "Colour B", key: "colourB", disabled: seedColours },
 ];

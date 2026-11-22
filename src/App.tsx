@@ -19,6 +19,7 @@ import {
   type UpdateObject,
   type UpdateSettings,
   type VisualSettings,
+  type SceneMode,
 } from "./scene/settings";
 
 export default function App() {
@@ -157,13 +158,15 @@ export default function App() {
       {!performing && (
         <>
           <TopBar
-              listening={listening}
-              previewing={previewing}
-              onStartAudio={handleStart}
-              onStopAudio={handleStop}
-              onTogglePreview={() => setPreviewing((on) => !on)}
-              onResetView={() => setResetViewToken((count) => count + 1)}
-              onPerform={startPerforming}
+            mode={settings.mode}
+            onModeChange={(mode: SceneMode) => setSettings((previous) => ({ ...previous, mode }))}
+            listening={listening}
+            previewing={previewing}
+            onStartAudio={handleStart}
+            onStopAudio={handleStop}
+            onTogglePreview={() => setPreviewing((on) => !on)}
+            onResetView={() => setResetViewToken((count) => count + 1)}
+            onPerform={startPerforming}
           />
 
           {error && (

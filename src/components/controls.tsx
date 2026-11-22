@@ -150,3 +150,24 @@ export function FileButton({ label, accept, onFile }: FileButtonProps) {
         </label>
     )
 }
+
+
+type TextInputProps = {
+    label: string;
+    value: string;
+    onChange: (value: string) => void;
+};
+
+export function TextInput({ label, value, onChange }: TextInputProps) {
+    return (
+        <label className="flex items-center justify-between gap-2 text-sm text-white/70">
+            {label}
+            <input
+                type="text"
+                value={value}
+                onChange={(e) => onChange(e.target.value)}
+                className="w-32 rounded bg-white/10 px-2 py-1 text-white outline-none focus:bg-white/20"
+            />
+        </label>
+    );
+}

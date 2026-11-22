@@ -1,4 +1,8 @@
+import type { SceneMode } from "../scene/settings";
+
 type Props = {
+    mode: SceneMode;
+    onModeChange: (mode: SceneMode) => void;
     listening: boolean;
     previewing: boolean;
     onStartAudio: () => void;
@@ -9,20 +13,23 @@ type Props = {
 
 }
 
-export default function TopBar({ listening, previewing, onStartAudio, onStopAudio, onTogglePreview, onResetView, onPerform }: Props) {
+export default function TopBar({ mode, onModeChange, listening, previewing, onStartAudio, onStopAudio, onTogglePreview, onResetView, onPerform }: Props) {
     return(
         <header className="absolute inset-x-0 top-0 flex h-12 items-center justify-between gap-4 border-b border-white/10 bg-black/60 px-4 text-sm text-white backdrop-blur">
             <span className="font-semibold tracking-wide">Music Visuals</span>
             
-            {/* Mode switch to wormhole section - comes later */}
 
             <div className="flex gap-1 rounded bg-white/5 p-1">
-                <button type="button" className="rounded bg-white/20 px-3 py-1">
-                    Scene
-                </button>
-                <button type="button" disabled title="Coming soon" className="cursor-not-allowed rounded px-3 py-1 text-white/30">
-                    Wormhole
-                </button>
+                {(["scene", "wormhole"] as const).map((option) => (
+                    <button
+                        key={option}
+                        type="button"
+                        onClick={() => onModeChange(option)}
+                        className={`rounded px-3 py-1 capitalize ${mode === option ? "bg-white/20" : "text-white/60 hover:text-white"}`}
+                    >
+                        {option}
+                    </button>
+                ))}
             </div>
 
             <div className="flex items-center gap-2">

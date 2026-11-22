@@ -6,6 +6,8 @@ import ShapeSection from "./panel/ShapeSection";
 import { LIGHTING_CONTROLS } from "./panel/definitions";
 import type { PanelSectionProps } from "./panel/shared";
 import CameraSection from "./panel/CameraSection";
+import WormholeSection from "./panel/WormholeSection";
+
 
 export default function ControlPanel(props: PanelSectionProps) {
     const hasSelection = props.settings.objects.some((object) => object.id === props.selectedId);
@@ -21,6 +23,7 @@ export default function ControlPanel(props: PanelSectionProps) {
                 </>
             ) : (
                 <>
+                    <WormholeSection {...props} />
                     <GroupSection {...props} group="lighting" title="Lighting" controls={LIGHTING_CONTROLS} />
                     <CameraSection {...props} />
                     <BackgroundSection {...props} />
