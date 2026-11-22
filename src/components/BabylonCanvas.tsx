@@ -8,11 +8,13 @@ type Props = {
   selectedId: string | null;
   gizmoMode: GizmoMode;
   editing: boolean;
+  viewMode: "editor" | "live";
+  resetViewToken: number;
   onSelectObject: (id: string | null) => void;
   onTransformEnd: (id: string, transform: ObjectTransform) => void;
 };
 
-export default function BabylonCanvas({ settings, selectedId, gizmoMode, editing, onSelectObject, onTransformEnd }: Props) {
+export default function BabylonCanvas({ settings, selectedId, gizmoMode, editing, viewMode, resetViewToken, onSelectObject, onTransformEnd }: Props) {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const visualiserRef = useRef<Visualiser | null>(null);
 
@@ -60,6 +62,14 @@ export default function BabylonCanvas({ settings, selectedId, gizmoMode, editing
     useEffect(() => {
         visualiserRef.current?.setEditing(editing);
     }, [editing]);
+
+    useEffect(() => {
+        visualiserRef.current?.setViewMode(viewMode);
+    }, [viewMode]);
+
+    useEffect(() => {
+        if (resetViewToken > 0) visualiserRef.current?.resetView();
+    }, [resetViewToken]);
 
     return <canvas ref={canvasRef} className="block h-full w-full" />;
 }

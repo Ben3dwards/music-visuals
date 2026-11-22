@@ -19,16 +19,28 @@ export function createVisualiser(canvas: HTMLCanvasElement, { onSelect, onTransf
     const scene = new Scene(engine);
 
     const audioFeatures = createAudioFeatures();
-    const objects = createObjects(scene);
+    const editorCamera = createCamera(scene, canvas);
+    const objects = createObjects(scene, canvas);
 
     //every visual effect in the scene. Adding a new one = addig to this list
     const effects: Effect[] = [
+        editorCamera,
         createCamera(scene, canvas),
         createBackground(scene),
         createLighting(scene),
         objects,
     ];
 
+    //which view is showing: the editor or the live camera
+    let viewMode: "editor" | "live" = "editor";
+    let liveCameraId: string | null = null;
+
+    function updateActiveCamera() {
+        const liveCamera = viewMode === "live" && liveCameraId ? objects.getCamera(liveCameraId) : null;
+        objects.setLiveCamera(liveCamera ? liveCameraId : null);
+        editorCamera.setActive(!liveCamera);
+        scene.activeCamera = liveCamera ?? editorCamera.camera;
+    }
 
     let selectedId: string | null = null;
     const gizmos = createGizmos(scene, (transform) => {
@@ -53,6 +65,17 @@ export function createVisualiser(canvas: HTMLCanvasElement, { onSelect, onTransf
     return{
         applySettings(settings: VisualSettings) {
             for (const effect of effects) effect.apply(settings);
+            liveCameraId = settings.camera.liveCameraId;
+            updateActiveCamera();
+        },
+
+        setViewMode(mode: "editor" | "live") {
+            viewMode = mode;
+            updateActiveCamera();
+        },
+
+        resetView() {
+            editorCamera.resetView();
         },
 
         select(id: string | null) {

@@ -12,7 +12,7 @@ import {
   defaultSettings,
   nextObjectName,
   spawnPosition,
-  withoutObject,
+  removeObject,
   type AddType,
   type EntityBase,
   type SceneObject,
@@ -28,6 +28,8 @@ export default function App() {
   const [performing, setPerforming] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(defaultSettings.objects[0]?.id ?? null);
   const [gizmoMode, setGizmoMode] = useState<GizmoMode>("move");
+  const [previewing, setPreviewing] = useState(false);
+  const [resetViewToken, setResetViewToken] = useState(0);
 
   const updateSettings: UpdateSettings = (group, changes) => {
     setSettings((previous) => ({
@@ -48,15 +50,22 @@ export default function App() {
   function addObject(type: AddType) {
     // Lights keep their own default spot (above and in front); everything else spawns side by side
     const overrides: Partial<EntityBase> = { name: nextObjectName(type, settings.objects) };
-    if (type !== "light") overrides.position = spawnPosition(settings.objects.length);
+    if (type !== "light" && type !== "camera") overrides.position = spawnPosition(settings.objects.length);
 
     const object = createByType(type, overrides);
     setSettings((previous) => ({ ...previous, objects: [...previous.objects, object] }));
-    setSelectedId(object.id); // select it, so the panel shows it straight away
+    setSelectedId(object.id);
+
+
+    const liveCameraExists = settings.objects.some((o) => o.id === settings.camera.liveCameraId);
+
+    if (type === "camera" && !liveCameraExists) {
+      updateSettings("camera", { liveCameraId: object.id });
+    }
   }
 
   function deleteObject(id: string) {
-    setSettings((previous) => ({ ...previous, objects: withoutObject(previous.objects, id) }));
+    setSettings((previous) => removeObject(previous, id));
     setSelectedId((current) => (current === id ? null : current));
   }
 
@@ -86,7 +95,7 @@ export default function App() {
       if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
 
       const id = selectedId;
-      setSettings((previous) => ({ ...previous, objects: withoutObject(previous.objects, id) }));
+      setSettings((previous) => removeObject(previous, id));
       setSelectedId(null);
     }
 
@@ -139,6 +148,8 @@ export default function App() {
         selectedId={performing ? null : selectedId}
         gizmoMode={gizmoMode}
         editing={!performing}
+        viewMode={performing || previewing ? "live" : "editor"}
+        resetViewToken={resetViewToken}
         onSelectObject={setSelectedId}
         onTransformEnd={updateObject}
       />
@@ -146,10 +157,13 @@ export default function App() {
       {!performing && (
         <>
           <TopBar
-            listening={listening}
-            onStartAudio={handleStart}
-            onStopAudio={handleStop}
-            onPerform={startPerforming}
+              listening={listening}
+              previewing={previewing}
+              onStartAudio={handleStart}
+              onStopAudio={handleStop}
+              onTogglePreview={() => setPreviewing((on) => !on)}
+              onResetView={() => setResetViewToken((count) => count + 1)}
+              onPerform={startPerforming}
           />
 
           {error && (

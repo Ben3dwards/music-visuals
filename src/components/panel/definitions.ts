@@ -1,4 +1,4 @@
-import type { CameraSettings, LightingSettings, LightSettings, SmokeSettings, SpectrumSettings } from "../../scene/settings";
+import type { CameraSettings, CameraItemSettings, LightingSettings, LightSettings, SmokeSettings, SpectrumSettings } from "../../scene/settings";
 import type { ControlDef } from "./controlTypes";
 import { LIGHT_OPTIONS, VIEW_OPTIONS, WIND_OPTIONS } from "./shared";
 
@@ -22,6 +22,12 @@ export const CAMERA_CONTROLS: ControlDef<CameraSettings>[] = [
     { type: "slider", label: "Distance", key: "distance", min: 2, max: 15, step: 0.1 },
     { type: "slider", label: "Orbit", key: "orbit", min: -2, max: 2, step: 0.05 },
     { type: "toggle", label: "Free look (drag)", key: "freeLook" },
+    { type: "reaction", label: "Punch", key: "punch" },
+];
+
+export const CAMERA_ITEM_CONTROLS: ControlDef<CameraItemSettings>[] = [
+    { type: "slider", label: "Field of view", key: "fov", min: 20, max: 100, step: 1 },
+    { type: "toggle", label: "Free look (mouse, while live)", key: "freeLook" },
     { type: "reaction", label: "Punch", key: "punch" },
 ];
 

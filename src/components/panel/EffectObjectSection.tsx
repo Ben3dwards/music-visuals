@@ -1,7 +1,7 @@
-import { DEFAULT_LIGHT, DEFAULT_SMOKE, DEFAULT_SPECTRUM } from "../../scene/settings";
+import { DEFAULT_CAMERA_ITEM, DEFAULT_LIGHT, DEFAULT_SMOKE, DEFAULT_SPECTRUM } from "../../scene/settings";
 import { Select, type Option } from "../controls";
 import ControlList from "./ControlList";
-import { LIGHT_CONTROLS, SMOKE_CONTROLS, SPECTRUM_CONTROLS } from "./definitions";
+import { CAMERA_ITEM_CONTROLS, LIGHT_CONTROLS, SMOKE_CONTROLS, SPECTRUM_CONTROLS } from "./definitions";
 import Section from "./Section";
 import TransformControls from "./TransformControls";
 import type { PanelSectionProps } from "./shared";
@@ -17,6 +17,7 @@ export default function EffectObjectSection({ settings, selectedId, onObjectChan
         if (object.kind === "spectrum") onObjectChange(id, { spectrum: { ...DEFAULT_SPECTRUM } });
         if (object.kind === "smoke") onObjectChange(id, { smoke: { ...DEFAULT_SMOKE } });
         if (object.kind === "light") onObjectChange(id, { light: { ...DEFAULT_LIGHT, flash: { ...DEFAULT_LIGHT.flash } } });
+        if (object.kind === "camera") onObjectChange(id, { camera: { ...DEFAULT_CAMERA_ITEM, punch: { ...DEFAULT_CAMERA_ITEM.punch } } });
         
     }
 
@@ -77,6 +78,14 @@ export default function EffectObjectSection({ settings, selectedId, onObjectChan
                     value={object.light}
                     controls={LIGHT_CONTROLS}
                     onChange={(changes) => onObjectChange(id, { light: { ...object.light, ...changes } })}
+                />
+            )}
+
+            {object.kind === "camera" && (
+                <ControlList
+                    value={object.camera}
+                    controls={CAMERA_ITEM_CONTROLS}
+                    onChange={(changes) => onObjectChange(id, { camera: { ...object.camera, ...changes } })}
                 />
             )}
         </Section>

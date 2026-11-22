@@ -3,8 +3,9 @@ import EffectObjectSection from "./panel/EffectObjectSection";
 import GroupSection from "./panel/GroupSection";
 import ReactionsSection from "./panel/ReactionsSection";
 import ShapeSection from "./panel/ShapeSection";
-import { CAMERA_CONTROLS, LIGHTING_CONTROLS } from "./panel/definitions";
+import { LIGHTING_CONTROLS } from "./panel/definitions";
 import type { PanelSectionProps } from "./panel/shared";
+import CameraSection from "./panel/CameraSection";
 
 export default function ControlPanel(props: PanelSectionProps) {
     const hasSelection = props.settings.objects.some((object) => object.id === props.selectedId);
@@ -21,7 +22,7 @@ export default function ControlPanel(props: PanelSectionProps) {
             ) : (
                 <>
                     <GroupSection {...props} group="lighting" title="Lighting" controls={LIGHTING_CONTROLS} />
-                    <GroupSection {...props} group="camera" title="Camera" controls={CAMERA_CONTROLS} />
+                    <CameraSection {...props} />
                     <BackgroundSection {...props} />
                 </>
             )}

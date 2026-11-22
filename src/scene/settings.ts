@@ -78,9 +78,21 @@ export type LightObject = EntityBase & {
 }
 
 
-export type SceneObject = ShapeObject | SpectrumObject | SmokeObject | LightObject;
+//Settings for one camera
+export type CameraItemSettings = {
+    fov: number;
+    freeLook: boolean;
+    punch: Reaction;
+};
 
-export type AddType = ShapeType | "spectrum" | "smoke" | "light";
+export type CameraObject = EntityBase & {
+    kind: "camera";
+    camera: CameraItemSettings;
+}
+
+export type SceneObject = ShapeObject | SpectrumObject | SmokeObject | LightObject | CameraObject;
+
+export type AddType = ShapeType | "spectrum" | "smoke" | "light" | "camera";
 
 export type ObjectTransform = Pick<EntityBase, "position" | "rotation" | "scale">;
 
@@ -95,6 +107,7 @@ export type CameraSettings = {
     orbit: number;
     freeLook: boolean;
     punch: Reaction;
+    liveCameraId: string | null;
 };
 
 export type BackgroundMode = "colour" | "image";
@@ -185,6 +198,22 @@ export function createLightObject(overrides: Partial<LightObject> = {}): LightOb
     };
 }
 
+export const DEFAULT_CAMERA_ITEM: CameraItemSettings = {
+    fov: 50,
+    freeLook: false,
+    punch: { source: "none", amount: 0 },
+};
+
+export function createCameraObject(overrides: Partial<CameraObject> = {}): CameraObject {
+    return {
+        ...baseEntity("camera"),
+        kind: "camera",
+        position: { x: 0, y: 0.5, z: -6 },
+        camera: { ...DEFAULT_CAMERA_ITEM, punch: { ...DEFAULT_CAMERA_ITEM.punch } },
+        ...overrides,
+    };
+}
+
 const TYPE_NAMES: Record<AddType, string> = {
     cube: "Cube",
     sphere: "Sphere",
@@ -192,6 +221,7 @@ const TYPE_NAMES: Record<AddType, string> = {
     spectrum: "Spectrum",
     smoke: "Smoke",
     light: "Light",
+    camera: "Camera"
 };
 
 
@@ -251,6 +281,7 @@ export function createByType(type: AddType, overrides: Partial<EntityBase> = {})
     if (type === "spectrum") return createSpectrumObject(overrides);
     if (type === "smoke") return createSmokeObject(overrides);
     if (type === "light") return createLightObject(overrides);
+    if (type === "camera") return createCameraObject(overrides);
     return createObject(type, overrides);
 }
 
@@ -273,6 +304,17 @@ export function withoutObject(objects: SceneObject[], id: string): SceneObject[]
         .map((object) => (object.attachedTo === id ? { ...object, attachedTo: null } : object));
 }
 
+export function removeObject(settings: VisualSettings, id: string): VisualSettings {
+    return {
+        ...settings,
+        objects: withoutObject(settings.objects, id),
+        camera: {
+            ...settings.camera,
+            liveCameraId: settings.camera.liveCameraId === id ? null : settings.camera.liveCameraId,
+        },
+    };
+}
+
 const startingCube = createObject("cube");
 export const defaultSettings: VisualSettings = {
 
@@ -290,6 +332,7 @@ export const defaultSettings: VisualSettings = {
     orbit: 0,
     freeLook: true,
     punch: { source: "none", amount: 0 },
+    liveCameraId: null,
     },
 
     background: {

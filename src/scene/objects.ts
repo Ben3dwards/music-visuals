@@ -1,4 +1,4 @@
-import type { Scene, TransformNode } from "@babylonjs/core";
+import type { Camera, Scene, TransformNode } from "@babylonjs/core";
 import type { AudioFeatures } from "../audio/audioFeatures";
 import type { Effect } from "./effect";
 import type { EntityInstance } from "./entity";
@@ -7,8 +7,9 @@ import { createSmoke } from "./smoke";
 import { createSpectrum } from "./spectrum";
 import type { SceneObject, VisualSettings } from "./settings";
 import { createLight } from "./light";
+import { createCameraItem } from "./cameraItem";
 
-function createInstance(scene: Scene, object: SceneObject): EntityInstance {
+function createInstance(scene: Scene, canvas: HTMLCanvasElement, object: SceneObject): EntityInstance {
     switch (object.kind) {
         case "shape":
             return createSceneObject(scene, object.id);
@@ -18,12 +19,20 @@ function createInstance(scene: Scene, object: SceneObject): EntityInstance {
             return createSmoke(scene, object.id);
         case "light":
             return createLight(scene, object.id);
+        case "camera":
+            return createCameraItem(scene, object.id, canvas);
     }
 }
 
 //Keeps scene items in sync with the settings
 
-export function createObjects(scene: Scene): Effect & {select(id: string | null): void; getNode(id: string): TransformNode | null; setEditing(editing: boolean): void;} {
+export function createObjects(scene: Scene, canvas: HTMLCanvasElement): Effect & {
+  select(id: string | null): void;
+  getNode(id: string): TransformNode | null;
+  setEditing(editing: boolean): void;
+  getCamera(id: string): Camera | null;
+  setLiveCamera(id: string | null): void;
+} {
     const instances = new Map<string, EntityInstance>();
     let selectedId: string | null = null;
     let editing = true;
@@ -35,7 +44,7 @@ export function createObjects(scene: Scene): Effect & {select(id: string | null)
              for (const object of objects) {
                 let instance = instances.get(object.id);
                     if (!instance) {
-                        instance = createInstance(scene, object);
+                        instance = createInstance(scene, canvas, object);
                         instance.setSelected(object.id === selectedId);
                         instance.setEditing?.(editing);
                         instances.set(object.id, instance);
@@ -78,6 +87,13 @@ export function createObjects(scene: Scene): Effect & {select(id: string | null)
 
         getNode(id: string) {
             return instances.get(id)?.node ?? null;
+        },
+        getCamera(id: string) {
+            return instances.get(id)?.camera ?? null;
+        },
+
+        setLiveCamera(id: string | null) {
+            for (const [instanceId, instance] of instances) instance.setLive?.(instanceId === id);
         },
 
         dispose() {

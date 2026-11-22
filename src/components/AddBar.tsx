@@ -13,7 +13,7 @@ const ITEMS: AddItem[] = [
     { label: "Spectrum", type: "spectrum" },
     { label: "Smoke", type: "smoke" },
     { label: "Light", type: "light" },
-    { label: "Camera", type: null },
+    { label: "Camera", type: "camera" },
 
 ];
 

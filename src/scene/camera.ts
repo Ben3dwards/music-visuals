@@ -15,16 +15,18 @@ const VIEWS: Record<CameraView, { alpha: number; beta: number }> = {
 
 
 const ORBIT_SPEED = 0.01;
-const MAX_PUNCH = 0.3; 
+const MAX_PUNCH = 0.3;
 
 
-export function createCamera(scene: Scene, canvas: HTMLCanvasElement): Effect {
+export function createCamera(scene: Scene, canvas: HTMLCanvasElement): Effect & {camera: ArcRotateCamera;setActive(active: boolean): void; resetView(): void;} {
     const { alpha, beta } = VIEWS.front;
-    const camera = new ArcRotateCamera("camera", alpha, beta, 5, Vector3.Zero(), scene);
+    const camera = new ArcRotateCamera("editorCamera", alpha, beta, 5, Vector3.Zero(), scene);
 
     let currentView: CameraView | null = null;
     let currentDistance: number | null = null;
-    let freeLook: boolean | null = null;
+    let freeLook = true;
+    let active = true;     
+    let controlling = false;
     let orbit = 0;
     let punch: Reaction = { source: "none", amount: 0 };
     let punchOffset = 0; 
@@ -44,19 +46,22 @@ export function createCamera(scene: Scene, canvas: HTMLCanvasElement): Effect {
         punchOffset = 0;
     }
 
-    // Turns mouse dragging on or off.
-    function setFreeLook(enabled: boolean) {
-        if (enabled === freeLook) return;
-        freeLook = enabled;
-        if (enabled) camera.attachControl(canvas, true);
+    function updateControl() {
+        const want = active && freeLook;
+        if (want === controlling) return;
+        controlling = want;
+        if (want) camera.attachControl(canvas, true);
         else camera.detachControl();
     }
 
     return {
+        camera,
+
         apply({ camera: settings }: VisualSettings) {
             setView(settings.view);
-            setFreeLook(settings.freeLook);
             setDistance(settings.distance);
+            freeLook = settings.freeLook;
+            updateControl();
             orbit = settings.orbit;
             punch = settings.punch;
         },
@@ -67,6 +72,20 @@ export function createCamera(scene: Scene, canvas: HTMLCanvasElement): Effect {
             const userDistance = camera.radius + punchOffset;
             punchOffset = userDistance * readReaction(punch, features) * MAX_PUNCH;
             camera.radius = userDistance - punchOffset;
+        },
+
+        setActive(value: boolean) {
+            active = value;
+            updateControl();
+        },
+
+        resetView() {
+        if (currentView) {
+                camera.alpha = VIEWS[currentView].alpha;
+                camera.beta = VIEWS[currentView].beta;
+            }
+            if (currentDistance !== null) camera.radius = currentDistance;
+            punchOffset = 0;
         },
 
         dispose(){

@@ -1,14 +1,16 @@
-import type { TransformNode } from "@babylonjs/core";
+import type { Camera, TransformNode } from "@babylonjs/core";
 import type { AudioFeatures } from "../audio/audioFeatures";
 import type { EntityBase, SceneObject } from "./settings";
 
 // What every kind of scene item looks like on the Babylon side
 export type EntityInstance = {
-    node: TransformNode;                         
+    node: TransformNode;     
+    camera?: Camera;                          
     apply(object: SceneObject): void;            
     update(features: AudioFeatures): void;       
     setSelected(selected: boolean): void;        
     setEditing?(editing: boolean): void; 
+    setLive?(live: boolean): void; 
     dispose(): void;
 };
 
